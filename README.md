@@ -2,7 +2,7 @@
 
 > Automated OCR and PII redaction for document batches
 
-## 🚧 Project Status: [Phase 2 of 6]
+## 🚧 Project Status: [Phase 3 of 6]
 
 Current: Building basic upload infrastructure
 Next: Adding job tracking database
@@ -22,8 +22,8 @@ Process batches of document images, automatically detect and redact sensitive in
 
 ## Phases
 - [ ] Phase 1: Basic upload 
-- [ ] Phase 2: Job tracking (IN PROGRESS)
-- [ ] Phase 3: Async infrastructure
+- [ ] Phase 2: Job tracking 
+- [x] Phase 3: Async infrastructure (IN PROGRESS)
 - [ ] Phase 4: Model development
 - [ ] Phase 5: Integration
 - [ ] Phase 6: Deployment
