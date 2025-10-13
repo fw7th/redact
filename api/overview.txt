@@ -1,0 +1,5 @@
+your_project/
+├── main.py       # App entry point (FastAPI app, routes, startup)
+├── db.py         # DB connection, session handling
+├── models.py     # SQLModel data models (tables)
+└── crud.py       # DB logic: create, read, update, delete functions

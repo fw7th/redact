@@ -1,2 +1,5 @@
 uploads/
 __pycache__/
+*.env
+*.py[cod]
+*$py.class
