@@ -13,15 +13,7 @@ class ImageStatus(str, Enum):
     failed = "failed"
 
 
-class Batch(SQLModel, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    status: ImageStatus = Field(default=ImageStatus.uploaded)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    files: List[File] = Relationship(back_populates="batch")
-
-
-class File(SQLModel, table=True):
+class Files(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     status: ImageStatus = Field(default=ImageStatus.uploaded)
     batch_id: UUID = Field(foreign_key="batch.id")
@@ -29,3 +21,11 @@ class File(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     batch: Optional["Batch"] = Relationship(back_populates="files")
+
+
+class Batch(SQLModel, table=True):
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    status: ImageStatus = Field(default=ImageStatus.uploaded)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    files: List[Files] = Relationship(back_populates="batch")

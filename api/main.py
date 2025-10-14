@@ -23,7 +23,7 @@ from sqlmodel import Session
 import crud
 from db import get_session, init_db
 from model import simulate_model_work
-from tables import Batch, File
+from tables import Batch, Files
 
 BASE_DIR = "uploads"
 
@@ -188,9 +188,3 @@ def get_task_status(job_id: str):
         }
     except Exception as e:
         return {"error": f"Job {job_id} not found"}
-
-
-async def get_files_by_batch(batch_id: UUID, session: AsyncSession):
-    statement = select(File).where(File.batch_id == batch_id)
-    results = await session.exec(statement)
-    return results.all()
