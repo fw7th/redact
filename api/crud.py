@@ -6,8 +6,7 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, select
 from sqlmodel.ext.asyncio.session import AsyncSession
-
-from tables import Batch, Files, ImageStatus
+from tables import Batch, Files, FileStatus
 
 
 async def create_batch_and_files(files: List[UploadFile], session: AsyncSession):
@@ -22,19 +21,18 @@ async def create_batch_and_files(files: List[UploadFile], session: AsyncSession)
             # Create file records
             file_objs = []
             for f in files:
-                content = await f.read()
                 file_obj = Files(
-                    batch_id=batch_id, filename=f.filename, created_at=datetime.now()
+                    batch_id=batch_id, filename=f.filename, created_at=datetime.utcnow()
                 )
                 file_objs.append(file_obj)
 
             session.add_all(file_objs)
+        # No need to call await.commit(), handled auto-handled by session.begin()
 
     except SQLAlchemyError as e:
-        # handle/log as needed
+        # handle/log later
+        print("DB Error: ", e)
         raise HTTPException(status_code=500, detail="Failed to store batch")
-
-    return batch_id
 
 
 def get_image(session: Session, image_id: int) -> Files | None:

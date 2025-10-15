@@ -1,10 +1,11 @@
-import datetime
 import os
 import shutil
 import time
 from contextlib import asynccontextmanager
 from typing import List
 
+import crud
+from db import get_session, init_db
 from fastapi import (
     BackgroundTasks,
     Depends,
@@ -15,21 +16,18 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.staticfiles import StaticFiles
+from model import simulate_model_work
 from redis import Redis
 from rq import Queue
 from rq.job import Job
 from sqlmodel import Session
-
-import crud
-from db import get_session, init_db
-from model import simulate_model_work
-from tables import Batch, Files
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 BASE_DIR = "uploads"
 
 # Connect to Redis
 redis_conn = Redis(host="localhost", port=6379, db=0)
-queue = Queue(connection=redis_conn)
+queue = Queue("high", connection=redis_conn)
 
 
 def create_base():
@@ -50,7 +48,7 @@ async def lifespan(app: FastAPI):
     # Startup events: Code here runs when the application starts
     print("Application startup: Initializing resources...")
     create_base()
-    init_db()
+    await init_db()
     # Example: database connection, loading models, etc.
     yield
     # Shutdown events: Code here runs when the application shuts down
@@ -69,7 +67,7 @@ def favicon():
 
 @app.post("/uploadfiles")
 async def upload_files(
-    files: List[UploadFile] = File(...), session: Session = Depends(get_session)
+    files: List[UploadFile] = File(...), session: AsyncSession = Depends(get_session)
 ):
     uploaded_files = []
     for file in files:
@@ -142,36 +140,19 @@ async def upload_files(
                 detail=f"Unexpected error during file upload: {str(e)}",
             )
 
-        try:
-            # Save to database
-            image = crud.create_image(session, file.filename)
-            session.add(image)
-            session.commit()
-            session.refresh(image)
-
-        except Exception as e:
-            # Cleanup: remove uploaded file if database operation fails
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                except:
-                    pass
-
-            raise HTTPException(
-                status_code=500,  # Internal Server Error
-                detail=f"Failed to save to database: {str(e)}",
-            )
-
         finally:
             await file.close()
 
+    # Save to database
+    await crud.create_batch_and_files(files, session)
+
     # Simulate work (model call)
-    job = queue.enqueue(simulate_model_work, f"task_{int(time.time())}", 5)
+    job = queue.enqueue(simulate_model_work, f"task_{int(time.time())}", 20)
 
     return {
         "job_id": job.id,
         "status": "queued",
-        "message": f"Task queued with duration {5}s",
+        "message": f"Task queued with duration {20}s",
     }
 
 
