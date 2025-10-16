@@ -7,8 +7,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from db import SessionLocal
-from tables import Batch, Files, FileStatus
+from core.database import SessionLocal
+from sqlschema.tables import Batch, Files, FileStatus
 
 
 async def create_batch_and_files(

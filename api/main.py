@@ -2,6 +2,7 @@ import os
 import shutil
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import List
 
 from fastapi import (
@@ -14,28 +15,27 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.staticfiles import StaticFiles
-from redis import Redis
-from rq import Queue
 from rq.job import Job
-from sqlmodel import Session
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-import crud
-from db import get_async_session, init_async_db, init_sync_db
-from model import simulate_model_work
-from tables import FileStatus
+from core.config import BASE_DIR
+from core.database import get_async_session, init_async_db, init_sync_db
+from core.log import LOG
+from core.redis import predict_queue, redis_conn
+from services.storage import create_batch_and_files
+from workers.inference import simulate_model_work
 
-BASE_DIR = "uploads"
-
-# Connect to Redis
-redis_conn = Redis(host="localhost", port=6379, db=0)
-queue = Queue("high", connection=redis_conn)
+PROJECT_ROOT = (
+    Path(__file__).resolve().parent.parent
+)  # goes from api/main.py → project/
+FULL_DIR = PROJECT_ROOT / BASE_DIR
 
 
 def create_base():
+    LOG.info(f"Base_dir: {BASE_DIR}")
     try:
         # Ensure the base directory exists when the application starts
-        os.makedirs(BASE_DIR, exist_ok=True)
+        FULL_DIR.mkdir(parents=True, exist_ok=True)
         return {"message": "Base directory created successfully."}
 
     except Exception as e:
@@ -48,19 +48,19 @@ def create_base():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup events: Code here runs when the application starts
-    print("Application startup: Initializing resources...")
+    LOG.info("Application startup: Initializing resources...")
     create_base()
     await init_async_db()
     init_sync_db()
     # Example: database connection, loading models, etc.
     yield
     # Shutdown events: Code here runs when the application shuts down
-    print("Application shutdown: Cleaning up resources...")
+    LOG.info("Application shutdown: Cleaning up resources...")
     # Example: closing database connections, releasing resources
 
 
 app = FastAPI(lifespan=lifespan)
-app.mount("/images", StaticFiles(directory="uploads"), name="images")
+app.mount("/images", StaticFiles(directory=str(FULL_DIR)), name="images")
 
 
 @app.get("/")
@@ -68,8 +68,8 @@ async def favicon():
     return Response(status_code=204)  # No Content
 
 
-@app.post("/uploadfiles")
-async def upload_files(
+@app.post("/predict")
+async def create_prediction(
     files: List[UploadFile] = File(...),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -148,10 +148,10 @@ async def upload_files(
             await file.close()
 
     # Save to database
-    batch_id = await crud.create_batch_and_files(files, session)
+    batch_id = await create_batch_and_files(files, session)
 
     # Simulate work (model call)
-    job = queue.enqueue(
+    job = predict_queue.enqueue(
         simulate_model_work,
         batch_id,
         f"task_{int(time.time())}",
@@ -159,18 +159,16 @@ async def upload_files(
         job_id="0",
     )
 
-    # Get job IDs from a queue
-    queued_job_ids = queue.job_ids
-    print(f"Queued Job IDs: {queued_job_ids}")
+    queued_job_ids = predict_queue.job_ids
+    LOG.info(f"Queued Job IDs: {queued_job_ids}")
 
     return {
         "job_id": job.id,
         "status": "queued",
-        "message": f"Task queued with duration {30}s\n",
     }
 
 
-@app.get("/tasks/{job_id}")
+@app.get("/predict/{job_id}")
 async def get_task_status(job_id: str):
     """Check the status of a task"""
     try:

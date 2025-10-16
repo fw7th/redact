@@ -3,8 +3,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from crud import update_batch_status
-from tables import FileStatus
+from services.storage import update_batch_status
+from sqlschema.tables import FileStatus
 
 
 def simulate_model_work(batch_id: UUID, task_id: str, duration: int = 5):
