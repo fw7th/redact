@@ -14,8 +14,8 @@ Process batches of document images, automatically detect and redact sensitive in
 [Diagram/description - update as you build]
 
 ## Features
-- [ ] Batch image upload
-- [ ] Asynchronous processing
+- [x] Batch image upload
+- [x] Asynchronous processing
 - [ ] Custom redaction model
 - [ ] REST API
 - [ ] Results retrieval
@@ -23,8 +23,8 @@ Process batches of document images, automatically detect and redact sensitive in
 ## Phases
 - [ ] Phase 1: Basic upload 
 - [ ] Phase 2: Job tracking 
-- [x] Phase 3: Async infrastructure (IN PROGRESS)
-- [ ] Phase 4: Model development
+- [ ] Phase 3: Async infrastructure 
+- [x] Phase 4: Model development (IN PROGRESS)
 - [ ] Phase 5: Integration
 - [ ] Phase 6: Deployment
 
@@ -32,7 +32,7 @@ Process batches of document images, automatically detect and redact sensitive in
 - FastAPI
 - PostgreSQL
 - Redis
-- Celery
+- RQ
 - Docker
 - [Model: TBD in Phase 4]
 

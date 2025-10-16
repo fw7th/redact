@@ -4,8 +4,6 @@ import time
 from contextlib import asynccontextmanager
 from typing import List
 
-import crud
-from db import get_session, init_db
 from fastapi import (
     BackgroundTasks,
     Depends,
@@ -16,12 +14,16 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.staticfiles import StaticFiles
-from model import simulate_model_work
 from redis import Redis
 from rq import Queue
 from rq.job import Job
 from sqlmodel import Session
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+import crud
+from db import get_async_session, init_async_db, init_sync_db
+from model import simulate_model_work
+from tables import FileStatus
 
 BASE_DIR = "uploads"
 
@@ -48,7 +50,8 @@ async def lifespan(app: FastAPI):
     # Startup events: Code here runs when the application starts
     print("Application startup: Initializing resources...")
     create_base()
-    await init_db()
+    await init_async_db()
+    init_sync_db()
     # Example: database connection, loading models, etc.
     yield
     # Shutdown events: Code here runs when the application shuts down
@@ -61,13 +64,14 @@ app.mount("/images", StaticFiles(directory="uploads"), name="images")
 
 
 @app.get("/")
-def favicon():
+async def favicon():
     return Response(status_code=204)  # No Content
 
 
 @app.post("/uploadfiles")
 async def upload_files(
-    files: List[UploadFile] = File(...), session: AsyncSession = Depends(get_session)
+    files: List[UploadFile] = File(...),
+    session: AsyncSession = Depends(get_async_session),
 ):
     uploaded_files = []
     for file in files:
@@ -144,20 +148,30 @@ async def upload_files(
             await file.close()
 
     # Save to database
-    await crud.create_batch_and_files(files, session)
+    batch_id = await crud.create_batch_and_files(files, session)
 
     # Simulate work (model call)
-    job = queue.enqueue(simulate_model_work, f"task_{int(time.time())}", 20)
+    job = queue.enqueue(
+        simulate_model_work,
+        batch_id,
+        f"task_{int(time.time())}",
+        30,
+        job_id="0",
+    )
+
+    # Get job IDs from a queue
+    queued_job_ids = queue.job_ids
+    print(f"Queued Job IDs: {queued_job_ids}")
 
     return {
         "job_id": job.id,
         "status": "queued",
-        "message": f"Task queued with duration {20}s",
+        "message": f"Task queued with duration {30}s\n",
     }
 
 
 @app.get("/tasks/{job_id}")
-def get_task_status(job_id: str):
+async def get_task_status(job_id: str):
     """Check the status of a task"""
     try:
         job = Job.fetch(job_id, connection=redis_conn)

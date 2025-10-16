@@ -4,12 +4,16 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.exc import SQLAlchemyError
-from sqlmodel import Session, select
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+from db import SessionLocal
 from tables import Batch, Files, FileStatus
 
 
-async def create_batch_and_files(files: List[UploadFile], session: AsyncSession):
+async def create_batch_and_files(
+    files: List[UploadFile], session: AsyncSession
+) -> UUID:
     batch_id = uuid4()
 
     try:
@@ -34,9 +38,12 @@ async def create_batch_and_files(files: List[UploadFile], session: AsyncSession)
         print("DB Error: ", e)
         raise HTTPException(status_code=500, detail="Failed to store batch")
 
+    return batch_id
 
-def get_image(session: Session, image_id: int) -> Files | None:
-    return session.get(Files, image_id)
+
+def get_image(image_id: int) -> Files | None:
+    with SessionLocal as session:
+        return session.get(Files, image_id)
 
 
 async def get_files_by_batch(batch_id: UUID, session: AsyncSession):
@@ -45,13 +52,40 @@ async def get_files_by_batch(batch_id: UUID, session: AsyncSession):
     return results.all()
 
 
-def update_image_status(session: Session, image_id: int, status: str) -> Files | None:
-    image = session.get(Files, image_id)
-    if not image:
-        return None
+# Use sync tasks when rq is involved
+def update_batch_status(batch_id: UUID, status: str):
+    try:
+        with SessionLocal() as session:  # start transaction
+            # Create and add batch record
+            batch = session.get(Batch, batch_id)
+            if not batch:
+                raise ValueError("Batch not found")
 
-    image.status = status
-    session.add(image)
-    session.commit()
-    session.refresh(image)
-    return image
+            batch.status = status
+
+            # Propagate to files
+            # Return batch_id matching column for all rows, in a list.
+            files = (
+                session.execute(select(Files).where(Files.batch_id == batch_id))
+                .scalars()
+                .all()
+            )
+            for f in files:
+                f.status = status
+
+            session.commit()
+
+    except SQLAlchemyError as e:
+        # handle/log later
+        print("DB Error: ", e)
+        raise
+
+
+# for async usage (FastAPI)
+async def update_batch_status_async(
+    session: AsyncSession, batch_id: UUID, status: FileStatus
+):
+    async with session.begin():
+        # use shared set_batch_and_files_status logic
+        pass  # write logic for async batch update later
+    pass
