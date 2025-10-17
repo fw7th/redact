@@ -7,20 +7,28 @@ from sqlmodel import SQLModel
 
 from redact.core.config import get_database_urls
 
-ASYNC_DB_URL, SYNC_DB_URL = get_database_urls()
 
-# Validate environment variable
-if not ASYNC_DB_URL or SYNC_DB_URL:
-    raise ValueError("Missing DB_URL or SYNC_DB_URL. Check .env or CI secrets.")
+def get_async_engine():
+    ASYNC_DB_URL, _ = get_database_urls()
+    return create_async_engine(ASYNC_DB_URL, echo=True)
+
+
+def get_sync_engine():
+    _, SYNC_DB_URL = get_database_urls()
+    return create_engine(SYNC_DB_URL, echo=True)
+
+
+async_engine = get_async_engine()
+sync_engine = get_sync_engine()
 
 # Async engine for FastAPI
-async_engine = create_async_engine(ASYNC_DB_URL, echo=True)
 AsyncSessionLocal = sessionmaker(
-    async_engine, class_=AsyncSession, expire_on_commit=False
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
 )
 
 # Sync engine for RQ jobs
-sync_engine = create_engine(SYNC_DB_URL, echo=True)
 SessionLocal = sessionmaker(bind=sync_engine)
 
 

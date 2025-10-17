@@ -16,17 +16,23 @@ from redact.core.redis import predict_queue, redis_conn
 from redact.services.storage import create_batch_and_files
 from redact.workers.inference import simulate_model_work
 
-BASE_DIR = get_base_dir()
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
 )  # goes from api/main.py → project/
-FULL_DIR = PROJECT_ROOT / BASE_DIR
+
+
+def get_full_dir():
+    return PROJECT_ROOT / get_base_dir()
+
+
+full_dir = None
 
 
 def create_base():
     try:
         # Ensure the base directory exists when the application starts
-        FULL_DIR.mkdir(parents=True, exist_ok=True)
+        full_dir = get_full_dir()
+        full_dir.mkdir(parents=True, exist_ok=True)
         return {"message": "Base directory created successfully."}
 
     except Exception as e:
@@ -95,7 +101,7 @@ async def create_prediction(
 
         try:
             # Save file to disk
-            file_path = os.path.join(FULL_DIR, file.filename)
+            file_path = os.path.join(full_dir, file.filename)
 
             """
             # Check if file already exists
