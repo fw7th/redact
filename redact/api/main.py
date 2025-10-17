@@ -52,6 +52,7 @@ def create_base():
 async def lifespan(app: FastAPI):
     global redis_conn, predict_queue
     LOG.info("App startup")
+    create_base()
     # Startup events: Code here runs when the application starts
     init_engines()
     redis_conn, predict_queue = get_redis_connection()
@@ -64,7 +65,6 @@ async def lifespan(app: FastAPI):
     # Example: closing database connections, releasing resources
 
 
-create_base()
 app = FastAPI(lifespan=lifespan)
 
 
