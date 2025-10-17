@@ -7,16 +7,16 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlmodel import SQLModel
 
-load_dotenv()
+# Only load .env if not in CI
+if not os.getenv("CI"):  # GitHub Actions sets CI=true
+    load_dotenv()
+
 ASYNC_DB_URL = os.getenv("DB_URL")
 SYNC_DB_URL = os.getenv("SYNC_DB_URL")
 
 # Validate environment variable
-if not ASYNC_DB_URL:
-    raise ValueError("ASYNC_DB_URL environment variable is not set.")
-
-if not SYNC_DB_URL:
-    raise ValueError("SYNC_DB_URL environment variable is not set.")
+if not ASYNC_DB_URL or SYNC_DB_URL:
+    raise ValueError("Missing DB_URL or SYNC_DB_URL. Check .env or CI secrets.")
 
 # Async engine for FastAPI
 async_engine = create_async_engine(ASYNC_DB_URL, echo=True)
