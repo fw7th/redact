@@ -104,14 +104,6 @@ Process batches of document images, automatically detect and redact sensitive in
 ![Linter](https://img.shields.io/badge/Linter-Ruff-663399?style=flat-square)
 ![Load Testing](https://img.shields.io/badge/Benchmarking-Locust-5CB53C?style=flat-square)
 
-- Backend: `Python 3.10+`
-- Web Framework: `FastAPI`
-- DBMS: `PostgreSQL`
-- Database ORM: `SQLAlchemy`
-- Caching/Task Queue: `RQ`
-- Broker: `Redis`
-- Containerization: Docker
-
 ## Performance
 [Add benchmarks as you build]
 ### API Benchmarking Table

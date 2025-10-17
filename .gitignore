@@ -4,6 +4,4 @@ __pycache__/
 *.py[cod]
 *$py.class
 logs/
-.benchmarks/
 test_assets/
-.pytest_cache/
