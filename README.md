@@ -1,59 +1,42 @@
-# Document Redaction System
 
-> Automated OCR and PII redaction for document batches
-
-# Document Redaction System
-
-> Automated OCR and PII redaction for document batches
-
-![Python](https://img.shields.io/badge/python-3.10+-blue)
-![FastAPI](https://img.shields.io/badge/framework-fastapi-green)
+<div align="center">
 <!--- ![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg)-->
-![Coverage](https://coveralls.io/repos/github/fw7th/redact/badge.svg)
-![Status](https://img.shields.io/badge/status-phase%203%20of%206-yellow)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
+[![Coverage](https://coveralls.io/repos/github/fw7th/redact/badge.svg)]
+[![Status](https://img.shields.io/badge/status-phase%203%20of%206-yellow)]
+</div>
+
+# Redact
+<p align="center">
+ <em>A fast, containerized, and scalable API service for automated OCR and PII redaction on document batches.</em>
+</p>
+
+Redact is a production-ready microservice built with FastAPI that handles the secure and asynchronous processing of data redaction tasks. Designed to be easily deployed using Docker and scaled via a worker-based architecture (Redis/RQ setup).
+
+Showcases:
+- A robust, modern Python API using FastAPI (complete with automatic documentation).
+- A clear separation of concerns (API, Core, Services, Workers).
+- Scalable asynchronous task processing.
+- Containerization with Docker.
+- Database interaction via SQLAlchemy.
+
+## Features
+- RESTful API: Clear endpoints for submitting and retrieving redaction tasks.
+- Asynchronous Processing: Long-running redaction tasks are handled by a dedicated worker pool, keeping the API fast and responsive.
+- Persistent Storage: Uses SQLAlchemy for task metadata and Redis for task queuing.
+- Containerized: Built for easy deployment with a Dockerfile.
+- Benchmarked: Includes load testing scripts using Locust and benchmarks for performance analysis.
 
 ## 🚧 Project Status: [Phase 3 of 6]
 
 Current: Making pytorch go `brrrrrr` i.e model creation
 Next: Integration and testing (meh)
 
-## Goal
+### Goal
 Process batches of document images, automatically detect and redact sensitive information (PII).
 
 ## Architecture
-
 <!-- TODO: Add diagram here once Phase 5 (integration) begins -->
-> This project uses FastAPI for request handling, Redis + RQ for background job queues, and SQLModel for async DB operations. The model runs as a background task once files are uploaded.
-
 [Diagram/description - update as you build #kinda lazy to do this one icl]
-
-## Project Structure
-redact/
-├── api/                  # FastAPI application logic
-│   └── main.py           # App entrypoint
-├── benchmarks/           # Performance & load testing
-│   ├── bench_predict.py
-│   ├── locustfile.py
-│   └── test_assets/      # Sample test images for benchmarking
-├── core/                 # Core utilities (config, DB, logging, Redis)
-│   ├── config.py
-│   ├── database.py
-│   ├── log.py
-│   └── redis.py
-├── services/             # Business logic and file handling
-│   └── storage.py
-├── sqlschema/            # SQLModel table definitions
-│   └── tables.py
-├── tests/                # Unit and integration tests
-│   ├── conftest.py
-│   ├── test_main.py
-│   └── test_storage.py
-├── workers/              # Background jobs and inference logic
-│   ├── inference.py
-│   └── worker.py
-├── Dockerfile
-└── README.md
 
 ## Features
 - [x] Batch image upload
@@ -71,9 +54,26 @@ redact/
 - [ ] Phase 6: Deployment
 
 ## Tech Stack
-- FastAPI
-- PostgreSQL
-- Redis
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688?style=flat-square&logo=fastapi)
+![Uvicorn](https://img.shields.io/badge/ASGI%20Server-Uvicorn-FF9900?style=flat-square)
+
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/ORM-SQLAlchemy-D7174C?style=flat-square)
+![Redis](https://img.shields.io/badge/Queue%20|%20Cache-Redis-DC382D?style=flat-square&logo=redis&logoColor=white)
+
+![Docker](https://img.shields.io/badge/Containerization-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Orchestration-Compose-0062E5?style=flat-square&logo=docker&logoColor=white)
+
+![Tests](https://img.shields.io/badge/Tests-Pytest-0A9EDC?style=flat-square)
+![Linter](https://img.shields.io/badge/Linter-Ruff-663399?style=flat-square)
+![Load Testing](https://img.shields.io/badge/Benchmarking-Locust-5CB53C?style=flat-square)
+
+- Backend: `Python 3.10+`
+- Web Framework: `FastAPI`
+- DBMS: `PostgreSQL`
+- Database ORM: `SQLAlchemy`
+- Caching/Task Queue: `Redis`
 - RQ
 - Docker
 - [Model: TBD in Phase 4]
@@ -115,24 +115,30 @@ redact/
 > - *Device*: CPU or GPU.
 
 ## 🔧 Quickstart
-[Update each phase]
-
+### Clone the repo
 ```bash
-# Clone the repo
 git clone https://github.com/yourname/redaction-api.git
 cd redaction-api
+```
 
-# Create and activate virtualenv (optional)
+### Create and activate virtualenv (optional)
+```bash
 python -m venv venv
 source venv/bin/activate  # or venv\Scripts\activate on Windows
+```
 
-# Install dependencies
+### Install dependencies
+```bash
 pip install -r requirements.txt
+```
 
-# Copy example env and configure
+### Copy example env and configure
+```bash
 cp .env.example .env
+``````
 
-# Start the app
+### Start the app
+```bash
 uvicorn app.main:app --reload
 ```
 
@@ -152,12 +158,28 @@ These provide interactive documentation of all available endpoints with live tes
 - Redis: Read about persistence, speed, and distributed support. Decided to go with it over normal multiprocessing.Queue, it scales and it integrates well with Celery and RQ. Not using Kafka, or rabbit, project isn't that advanced.
 - RQ: Initially wanted to use Celery, however after much investigation, I realized that it's probably too advanced for my use case. I'd rather avoid the setup overhead, just wanted simple and quick setup.
 
+## Project Structure
+Main directories and their purpose for anyone looking to understand or extend the codebase.
+
+```text
+redact/
+├── benchmarks/         # Load testing and performance scripts (Locust, custom benchmarks)
+├── redact/             # Main source code package
+│   ├── api/            # FastAPI router definitions and main application entrypoint
+│   ├── core/           # Configuration, logging, database/redis connection handling
+│   ├── services/       # Business logic layer (e.g., storage abstraction)
+│   ├── sqlschema/      # SQLAlchemy model definitions
+│   └── workers/        # Asynchronous task processing logic (inference, main worker)
+├── scripts/            # Helper scripts for development (benchmarking, service setup)
+├── tests/              # Unit and integration tests (uses pytest)
+└── requirements.txt    # All project dependencies
+
+```
+
 ## Future Improvements
 - [ ] Web UI
 - [ ] Multiple output formats
 - [x] Batch job scheduling
 
-
 ## 📄 License
-
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
