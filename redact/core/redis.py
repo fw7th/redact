@@ -1,13 +1,9 @@
-import os
-
-from dotenv import load_dotenv
 from redis import Redis
 from rq import Queue
 
-load_dotenv()
+from redact.core.config import get_redis_dirs
 
-REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_HOST, REDIS_PORT = get_redis_dirs()
 
 # Connect to Redis
 redis_conn = Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)

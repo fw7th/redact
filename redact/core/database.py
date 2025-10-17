@@ -1,18 +1,13 @@
-import os
 from typing import AsyncGenerator
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlmodel import SQLModel
 
-# Only load .env if not in CI
-if not os.getenv("CI"):  # GitHub Actions sets CI=true
-    load_dotenv()
+from redact.core.config import get_database_urls
 
-ASYNC_DB_URL = os.getenv("DB_URL")
-SYNC_DB_URL = os.getenv("SYNC_DB_URL")
+ASYNC_DB_URL, SYNC_DB_URL = get_database_urls()
 
 # Validate environment variable
 if not ASYNC_DB_URL or SYNC_DB_URL:
