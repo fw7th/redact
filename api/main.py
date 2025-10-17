@@ -33,7 +33,6 @@ FULL_DIR = PROJECT_ROOT / BASE_DIR
 
 
 def create_base():
-    LOG.info(f"Base_dir: {BASE_DIR}")
     try:
         # Ensure the base directory exists when the application starts
         FULL_DIR.mkdir(parents=True, exist_ok=True)

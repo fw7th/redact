@@ -41,11 +41,6 @@ async def create_batch_and_files(
     return batch_id
 
 
-def get_image(image_id: int) -> Files | None:
-    with SessionLocal as session:
-        return session.get(Files, image_id)
-
-
 async def get_files_by_batch(batch_id: UUID, session: AsyncSession):
     statement = select(Files).where(Files.batch_id == batch_id)
     results = await session.exec(statement)
