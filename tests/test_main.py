@@ -16,10 +16,10 @@ async def test_create_prediction_success(client, mock_session):
     # Mock the dependencies
     with (
         patch(
-            "api.main.create_batch_and_files", new_callable=AsyncMock
+            "redact.api.main.create_batch_and_files", new_callable=AsyncMock
         ) as mock_create_batch,
-        patch("api.main.predict_queue") as mock_queue,
-        patch("api.main.get_async_session", return_value=mock_session),
+        patch("redact.api.main.predict_queue") as mock_queue,
+        patch("redact.api.main.get_async_session", return_value=mock_session),
         patch("builtins.open", create=True),
         patch("os.path.exists", return_value=False),
         patch("shutil.copyfileobj"),
@@ -78,10 +78,10 @@ async def test_create_prediction_multiple_files(client):
 
     with (
         patch(
-            "api.main.create_batch_and_files", new_callable=AsyncMock
+            "redact.api.main.create_batch_and_files", new_callable=AsyncMock
         ) as mock_create_batch,
-        patch("api.main.predict_queue") as mock_queue,
-        patch("api.main.get_async_session"),
+        patch("redact.api.main.predict_queue") as mock_queue,
+        patch("redact.api.main.get_async_session"),
         patch("builtins.open", create=True),
         patch("os.path.exists", return_value=False),
         patch("shutil.copyfileobj"),
