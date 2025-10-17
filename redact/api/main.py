@@ -10,10 +10,14 @@ from rq.job import Job
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from redact.core.config import get_base_dir
-from redact.core.database import (get_async_session, init_async_db,
-                                  init_engines, init_sync_db)
+from redact.core.database import (
+    get_async_session,
+    init_async_db,
+    init_engines,
+    init_sync_db,
+)
 from redact.core.log import LOG
-from redact.core.redis import predict_queue, redis_conn
+from redact.core.redis import get_redis_connection
 from redact.services.storage import create_batch_and_files
 from redact.workers.inference import simulate_model_work
 
@@ -27,10 +31,13 @@ def get_full_dir():
 
 
 full_dir = None
+predict_queue = None
+redis_conn = None
 
 
 def create_base():
     try:
+        global full_dir
         # Ensure the base directory exists when the application starts
         full_dir = get_full_dir()
         full_dir.mkdir(parents=True, exist_ok=True)
@@ -45,9 +52,11 @@ def create_base():
 # Define the lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global redis_conn, predict_queue
     LOG.info("App startup")
     # Startup events: Code here runs when the application starts
     init_engines()
+    redis_conn, predict_queue = get_redis_connection()
     await init_async_db()
     init_sync_db()
     # Example: database connection, loading models, etc.

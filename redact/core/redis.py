@@ -7,8 +7,8 @@ from redact.core.config import get_redis_dirs
 # Connect to Redis
 def get_redis_connection():
     REDIS_HOST, REDIS_PORT = get_redis_dirs()
-    return Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
+    redis_conn = Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
+    predict_queue = Queue("high", connection=redis_conn)
 
-redis_conn = get_redis_connection()
-predict_queue = Queue("high", connection=redis_conn)
+    return redis_conn, predict_queue

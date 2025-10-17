@@ -2,8 +2,7 @@
 from typing import AsyncGenerator, Optional
 
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlmodel import SQLModel
 
