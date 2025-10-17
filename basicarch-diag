@@ -1,0 +1,28 @@
+
+[User]
+   |
+   v
+[FastAPI API Server] <----> [PostgreSQL DB]
+   |
+   v
+[Redis + RQ Job Queue]
+   |
+   v
+[Worker (OCR + Redaction)]
+   |
+   v
+[Storage (Filesystem)]
+
+
+# unicode for folder structure
+redact/
+|-- api/
+|   `-- main.py
+|-- benchmarks/
+|   |-- bench_predict.py
+|   |-- locustfile.py
+|   `-- test_assets/
+...
+
+you can generate this w/
+tree redact/ # terminal
