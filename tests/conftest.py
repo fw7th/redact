@@ -4,10 +4,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from redact.api.main import app
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session
-
-from api.main import app
 
 # Configure pytest-asyncio
 pytest_plugins = ("pytest_asyncio",)

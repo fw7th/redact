@@ -5,9 +5,8 @@ from uuid import UUID, uuid4
 
 import pytest
 from fastapi import HTTPException, UploadFile
-
-from services.storage import create_batch_and_files, update_batch_status
-from sqlschema.tables import Batch, Files
+from redact.services.storage import create_batch_and_files, update_batch_status
+from redact.sqlschema.tables import Batch, Files
 
 
 @pytest.mark.asyncio
