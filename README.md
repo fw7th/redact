@@ -18,11 +18,10 @@
 
 <div align="center">
 
-![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg)
-[![Coverage](https://coveralls.io/repos/github/fw7th/redact/badge.svg)]
-[![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow)]
+<!---![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg)--->
+![Coverage](https://coveralls.io/repos/github/fw7th/redact/badge.svg)
+![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow) </div>
 
-</div>
 
 <!---
 ---
