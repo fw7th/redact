@@ -20,7 +20,9 @@
 
 <!---![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg)--->
 ![Coverage](https://coveralls.io/repos/github/fw7th/redact/badge.svg)
-![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow) </div>
+![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow)
+![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/fw7th/redact/badge.svg?branch=main)](https://coveralls.io/github/fw7th/redact?branch=main) </div>
 
 
 <!---
@@ -73,8 +75,11 @@ Process batches of document images, automatically detect and redact sensitive in
 - [x] Batch image upload
 - [x] Asynchronous processing
 - [ ] Custom redaction model
+- [ ] Enable batch prediction
 - [ ] REST API
+- [ ] Add auth
 - [ ] Results retrieval
+- [ ] Deploy to Docker/Kubernetes
 
 ## Phases
 - [ ] Phase 1: Basic upload 
@@ -167,6 +172,23 @@ cp .env.example .env
 ```bash
 uvicorn app.main:app --reload
 ```
+ 
+### Client request example
+```bash
+curl -X POST http://localhost:8000/predict \
+  -F "files=@cat.jpg"
+```
+#### Check job status
+```bash
+curl http://localhost:8000/predict/abc123
+```
+
+## Running tests
+```bash
+pytest tests/
+```
+### Optionally benchmark
+./scripts/benchmark
 
 ## API Documentation
 [Link to /docs once deployed]
