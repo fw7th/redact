@@ -3,9 +3,11 @@ import shutil
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, Response, UploadFile
+from redis import Redis
+from rq import Queue
 from rq.job import Job
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -26,20 +28,16 @@ PROJECT_ROOT = (
 )  # goes from api/main.py → project/
 
 
-def get_full_dir():
-    return PROJECT_ROOT / get_base_dir()
-
-
-full_dir = None
-predict_queue = None
-redis_conn = None
+full_dir: Optional[Path] = None
+predict_queue: Optional[Queue] = None
+redis_conn: Optional[Redis] = None
 
 
 def create_base():
     try:
-        global full_dir
         # Ensure the base directory exists when the application starts
-        full_dir = get_full_dir()
+        global full_dir
+        full_dir = PROJECT_ROOT / get_base_dir()
         full_dir.mkdir(parents=True, exist_ok=True)
         return {"message": "Base directory created successfully."}
 
