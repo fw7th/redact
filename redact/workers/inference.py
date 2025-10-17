@@ -1,8 +1,6 @@
 import time
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
 from redact.services.storage import update_batch_status
 from redact.sqlschema.tables import FileStatus
 

@@ -6,6 +6,7 @@ asyncpg==0.30.0
 attrs==25.4.0
 backports.asyncio.runner==1.2.0
 bidict==0.23.1
+black==25.9.0
 blinker==1.9.0
 Brotli==1.1.0
 cattrs==25.3.0
@@ -35,6 +36,7 @@ httptools==0.6.4
 httpx==0.28.1
 idna==3.10
 iniconfig==2.1.0
+isort==7.0.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 locust==2.41.6
@@ -44,8 +46,10 @@ markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
 msgpack==1.1.2
+mypy_extensions==1.1.0
 orjson==3.11.3
 packaging==25.0
+pathspec==0.12.1
 platformdirs==4.5.0
 pluggy==1.6.0
 psutil==7.1.0
@@ -69,6 +73,7 @@ python-dotenv==1.1.1
 python-engineio==4.12.3
 python-multipart==0.0.20
 python-socketio==5.14.2
+pytokens==0.2.0
 pytz==2025.2
 PyYAML==6.0.3
 pyzmq==27.1.0

@@ -1,0 +1,4 @@
+[tool.ruff]
+line-length = 88
+exclude = ["migrations", "venv", ".venv", "__pycache__"]
+extend-select = ["I"]  # auto-fix import sorting

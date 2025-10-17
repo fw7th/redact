@@ -5,17 +5,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List
 
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    File,
-    HTTPException,
-    Response,
-    UploadFile,
-)
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi import Depends, FastAPI, File, HTTPException, Response, UploadFile
 from rq.job import Job
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -136,7 +126,8 @@ async def create_prediction(
             if os.path.exists(file_path):
                 try:
                     os.remove(file_path)
-                except:
+                except Exception as e:
+                    LOG.error(f"Failed to clean parially written file. Error: {e}")
                     pass
             raise HTTPException(
                 status_code=500,  # Internal Server Error
@@ -178,7 +169,7 @@ async def get_task_status(job_id: str):
             "result": job.result if job.is_finished else None,
             "error": str(job.exc_info) if job.is_failed else None,
         }
-    except Exception as e:
+    except Exception:
         return {"error": f"Job {job_id} not found"}
 
 
