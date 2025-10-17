@@ -1,9 +1,39 @@
+<!--- FOR SVG (copied from starlette)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Kludex/starlette/main/docs/img/starlette_dark.svg" width="420px">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Kludex/starlette/main/docs/img/starlette.svg" width="420px">
+    <img alt="starlette-logo" src="https://raw.githubusercontent.com/Kludex/starlette/main/docs/img/starlette_dark.svg">
+  </picture>
+</p>
+
+<p align="center">
+    <em>✨ The little ASGI framework that shines. ✨</em>
+</p>
+
+---
+
+-->
+
 
 <div align="center">
-<!--- ![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg)-->
+
+![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg)
 [![Coverage](https://coveralls.io/repos/github/fw7th/redact/badge.svg)]
-[![Status](https://img.shields.io/badge/status-phase%203%20of%206-yellow)]
+[![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow)]
+
 </div>
+
+<!---
+---
+
+**Documentation**: <a href="https://starlette.dev/" target="_blank">https://starlette.dev</a>
+
+**Source Code**: <a href="https://github.com/Kludex/starlette" target="_blank">https://github.com/Kludex/starlette</a>
+
+--->
+
+---
 
 # Redact
 <p align="center">
@@ -18,6 +48,8 @@ Showcases:
 - Scalable asynchronous task processing.
 - Containerization with Docker.
 - Database interaction via SQLAlchemy.
+
+---
 
 ## Features
 - RESTful API: Clear endpoints for submitting and retrieving redaction tasks.
@@ -60,7 +92,11 @@ Process batches of document images, automatically detect and redact sensitive in
 
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
 ![SQLAlchemy](https://img.shields.io/badge/ORM-SQLAlchemy-D7174C?style=flat-square)
-![Redis](https://img.shields.io/badge/Queue%20|%20Cache-Redis-DC382D?style=flat-square&logo=redis&logoColor=white)
+![Redis](https://img.shields.io/badge/Cache%20|%20Broker-Redis-DC382D?style=flat-square&logo=redis&logoColor=white)
+![RQ](https://img.shields.io/badge/Job%20Queue-Python--RQ-A41E22?style=flat-square)
+
+![PyTorch](https://img.shields.io/badge/ML%20Framework-PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
+![Model](https://img.shields.io/badge/Model%20|%20OCR-Custom%20TBD-539165?style=flat-square)
 
 ![Docker](https://img.shields.io/badge/Containerization-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Docker Compose](https://img.shields.io/badge/Orchestration-Compose-0062E5?style=flat-square&logo=docker&logoColor=white)
@@ -73,14 +109,12 @@ Process batches of document images, automatically detect and redact sensitive in
 - Web Framework: `FastAPI`
 - DBMS: `PostgreSQL`
 - Database ORM: `SQLAlchemy`
-- Caching/Task Queue: `Redis`
-- RQ
-- Docker
-- [Model: TBD in Phase 4]
+- Caching/Task Queue: `RQ`
+- Broker: `Redis`
+- Containerization: Docker
 
 ## Performance
 [Add benchmarks as you build]
-
 ### API Benchmarking Table
 
 | Endpoint              | Operation | Payload Size | Concurrent Users | Requests/sec | Avg Latency (ms) | P95 Latency (ms) | Error Rate | Notes                                      |
@@ -100,6 +134,7 @@ Process batches of document images, automatically detect and redact sensitive in
 
 
 ### Model Inference Benchmark Table
+- [Model: TBD post Phase 4]
 
 | Model Name         | Input Size        | Avg Inference Time (ms) | Throughput (req/sec) | Peak RAM Usage | Device | Notes                                  |
 |--------------------|-------------------|--------------------------|-----------------------|----------------|--------|-----------------------------------------|
@@ -153,10 +188,10 @@ When the server is running locally, visit:
 These provide interactive documentation of all available endpoints with live testing.
 
 ## Design Decisions
-- FastAPI, mainly because it's lighter than Django.
-- Postgres, I'm familiar with the dbms already, no need for any external onboarding.
-- Redis: Read about persistence, speed, and distributed support. Decided to go with it over normal multiprocessing.Queue, it scales and it integrates well with Celery and RQ. Not using Kafka, or rabbit, project isn't that advanced.
-- RQ: Initially wanted to use Celery, however after much investigation, I realized that it's probably too advanced for my use case. I'd rather avoid the setup overhead, just wanted simple and quick setup.
+- `FastAPI`, mainly because it's lighter than Django.
+- `Postgres`, I'm familiar with the dbms already, no need for any external onboarding.
+- `Redis`: Read about persistence, speed, and distributed support. Decided to go with it over normal multiprocessing.Queue, it scales and it integrates well with Celery and RQ. Not using Kafka, or rabbit, project isn't that advanced.
+- `RQ`: Initially wanted to use Celery, however after much investigation, I realized that it's probably too advanced for my use case. I'd rather avoid the setup overhead, just wanted simple and quick setup.
 
 ## Project Structure
 Main directories and their purpose for anyone looking to understand or extend the codebase.
