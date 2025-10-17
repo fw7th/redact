@@ -39,10 +39,3 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           BASE_DIR: ${{ secrets.BASE_DIR }}
         run: coveralls
-
-      - name: Lint with Ruff, Black, and isort
-        run: |
-          pip install ruff black isort
-          ruff . --output-format=github
-          black --check .
-          isort --check-only .

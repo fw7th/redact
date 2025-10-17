@@ -10,7 +10,8 @@ from rq.job import Job
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from redact.core.config import get_base_dir
-from redact.core.database import get_async_session, init_async_db, init_sync_db
+from redact.core.database import (get_async_session, init_async_db,
+                                  init_engines, init_sync_db)
 from redact.core.log import LOG
 from redact.core.redis import predict_queue, redis_conn
 from redact.services.storage import create_batch_and_files
@@ -44,14 +45,15 @@ def create_base():
 # Define the lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    LOG.info("App startup")
     # Startup events: Code here runs when the application starts
-    LOG.info("Application startup: Initializing resources...")
+    init_engines()
     await init_async_db()
     init_sync_db()
     # Example: database connection, loading models, etc.
     yield
     # Shutdown events: Code here runs when the application shuts down
-    LOG.info("Application shutdown: Cleaning up resources...")
+    LOG.info("App shutdown..")
     # Example: closing database connections, releasing resources
 
 
