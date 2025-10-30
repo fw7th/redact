@@ -19,12 +19,12 @@ from fastapi.staticfiles import StaticFiles
 from rq.job import Job
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from core.config import BASE_DIR
-from core.database import get_async_session, init_async_db, init_sync_db
-from core.log import LOG
-from core.redis import predict_queue, redis_conn
-from services.storage import create_batch_and_files
-from workers.inference import simulate_model_work
+from redact.core.config import BASE_DIR
+from redact.core.database import get_async_session, init_async_db, init_sync_db
+from redact.core.log import LOG
+from redact.core.redis import predict_queue, redis_conn
+from redact.services.storage import create_batch_and_files
+from redact.workers.inference import simulate_model_work
 
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent

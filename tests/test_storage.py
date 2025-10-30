@@ -6,8 +6,8 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi import HTTPException, UploadFile
 
-from services.storage import create_batch_and_files, update_batch_status
-from sqlschema.tables import Batch, Files
+from redact.services.storage import create_batch_and_files, update_batch_status
+from redact.sqlschema.tables import Batch, Files
 
 
 @pytest.mark.asyncio
@@ -82,7 +82,7 @@ def test_update_batch_status_success(sync_mock_session):
     sync_mock_session.execute.return_value.scalars.return_value = mock_scalars
 
     # Act: Call the function with mocked SessionLocal
-    with patch("services.storage.SessionLocal", return_value=sync_mock_session):
+    with patch("redact.services.storage.SessionLocal", return_value=sync_mock_session):
         update_batch_status(fake_uuid, fake_status)
 
     # Assert: Check everything worked
