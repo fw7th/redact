@@ -56,4 +56,9 @@ jobs:
           REDIS_PORT: 6379
           REDIS_PASSWORD: ""
           BASE_DIR: "uploads"
-        run: pytest tests/
+        run: pytest tests/ --cov=. --cov-report=term --cov-report=xml
+      
+      - name: Upload coverage to Coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: coveralls --service=github
