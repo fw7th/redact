@@ -1,0 +1,18 @@
+| Category             | Common Examples                                    |
+| -------------------- | -------------------------------------------------- |
+| Personal identifiers | Name, signature, address                           |
+| Financial            | Account numbers, card numbers, transaction amounts |
+| Legal                | ID numbers, passport numbers, tax IDs              |
+| Corporate            | Company names, registration numbers, employee IDs  |
+| Contact              | Emails, phone numbers                              |
+
+
+
+Layouts:
+- forms
+- receipts
+- letters
+- ID cards
+
+200 real manually checked
+2.5 - 4k fake bootstrap
