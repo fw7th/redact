@@ -1,6 +1,12 @@
 import os
+import sys
+
+# Temporary, just for prod
+sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
+
 import shutil
 import time
+import warnings
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List
@@ -16,6 +22,7 @@ from fastapi import (
 )
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from gliner import GLiNER
 from rq.job import Job
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -24,12 +31,19 @@ from redact.core.database import get_async_session, init_async_db, init_sync_db
 from redact.core.log import LOG
 from redact.core.redis import predict_queue, redis_conn
 from redact.services.storage import create_batch_and_files
-from redact.workers.inference import simulate_model_work
+from redact.workers.inference import Inference
+
+# Suppress TensorFlow/CUDA warnings
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # Suppress TF warnings
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Disable GPU search entirely
+os.environ["JAX_PLATFORM_NAME"] = "cpu"
+warnings.filterwarnings("ignore")
 
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
 )  # goes from api/main.py → project/
 FULL_DIR = PROJECT_ROOT / BASE_DIR
+app_state = {}
 
 
 def create_base():
@@ -44,17 +58,28 @@ def create_base():
         )
 
 
+def load_ml_model():
+    # Load the model here instead of in the inference file
+    print("Loading GLiNER....")
+    model = GLiNER.from_pretrained("urchade/gliner_med")
+    print("Model loaded.")
+    return model
+
+
 # Define the lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup events: Code here runs when the application starts
     LOG.info("Application startup: Initializing resources...")
+    app_state["model"] = load_ml_model()
     await init_async_db()
     init_sync_db()
     # Example: database connection, loading models, etc.
-    yield
     # Shutdown events: Code here runs when the application shuts down
     LOG.info("Application shutdown: Cleaning up resources...")
+    yield
+    app_state.clear()
+    LOG.info("Cleanup complete.")
     # Example: closing database connections, releasing resources
 
 
@@ -151,8 +176,9 @@ async def create_prediction(
 
     # Simulate work (model call)
     job = predict_queue.enqueue(
-        simulate_model_work,
+        Inference.full_inference,
         batch_id,
+        app_state.get("model"),
         f"task_{int(time.time())}",
         30,
         job_id="0",
@@ -183,7 +209,7 @@ async def get_task_status(job_id: str):
 
 
 """
-For Users to request a file, maybe their download etc.
+For Users to request a file, maybe their download etc. Template for now.
 @app.get("/files/{filename}")
 async def get_file(filename: str, user: User = Depends(get_current_user)):
     file_path = f"uploads/{user.id}/{filename}"

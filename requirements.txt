@@ -158,3 +158,4 @@ zope.event==6.0
 zope.interface==8.0.1
 gliner_spacy
 flashdeberta
+opencv-python-headless
