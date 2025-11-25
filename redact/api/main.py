@@ -1,10 +1,9 @@
 import os
-import sys
 
 # Temporary, just for prod
-sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
-
+# sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 import shutil
+import sys
 import time
 import warnings
 from contextlib import asynccontextmanager
