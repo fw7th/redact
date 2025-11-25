@@ -14,6 +14,17 @@ from redact.sqlschema.tables import FileStatus
 class Inference:
     def __init__(self, model, batch_id: UUID, task_id: str, duration: int = 5):
         self.model = model
+        self.labels = [
+            "person",
+            "credit card number",
+            "email",
+            "phone number",
+            "gender",
+            "marital status",
+            "date",
+            "social security number, health insurance",
+            "location",
+        ]
 
     def NER(self, json_files: list[str]):
         for json_path in json_files:
@@ -21,14 +32,34 @@ class Inference:
                 with open(json_path, "r") as file:
                     data = json.load(file)
 
-                labels = ["founder", "computer", "software", "position", "date"]
-
                 texts = " ".join(result["text"] for result in data["ocr"])
 
-                entities = self.model.predict_entities(texts, labels, threshold=0.25)
+                entities = self.model.predict_entities(
+                    texts, self.labels, threshold=0.25
+                )
 
-                for entity in entities:
-                    print(entity["text"], "=>", entity["label"])
+                for i in range(0, len(data["ocr"]))
+                    for entity in entities:
+                        if entity["text"] == data["ocr"][i]["text"]:
+                            data["ocr"][i]["label"] = entity["label"]
+    
+                        print(entity["text"], "=>", entity["label"])
+                    
+
+            except FileNotFoundError:
+                print(f"Error: The file '{json_path}' was not found.")
+            except json.JSONDecodeError:
+                print(f"Error: Could not decode JSON from the file '{json_path}'.")
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+
+    def redact(self, json_files: list[str]):
+        for json_path in json_files:
+            try:
+                with open(json_path, "r") as file:
+                    data = json.load(file)
+
+                    """"Stiill gottta finish""""
 
             except FileNotFoundError:
                 print(f"Error: The file '{json_path}' was not found.")
