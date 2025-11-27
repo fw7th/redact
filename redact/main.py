@@ -1,13 +1,12 @@
 import os
-import sys
-from pathlib import Path
 
 # Temporary, just for prod
-sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
-
+# sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 import shutil
+import sys
 import warnings
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import List
 
 from fastapi import (

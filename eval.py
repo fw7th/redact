@@ -2,11 +2,9 @@ import json
 import os
 import sys
 
-import numpy as np
-
-sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
-
+# sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 import cv2
+import numpy as np
 from gliner import GLiNER
 
 model = GLiNER.from_pretrained("urchade/gliner_medium-v2.1")
