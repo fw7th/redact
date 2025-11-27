@@ -26,7 +26,9 @@ async def create_batch_and_files(
             file_objs = []
             for f in files:
                 file_obj = Files(
-                    batch_id=batch_id, filename=f.filename, created_at=datetime.utcnow()
+                    batch_id=batch_id,
+                    filename=f.filename,
+                    created_at=datetime.utcnow(),
                 )
                 file_objs.append(file_obj)
 
@@ -41,10 +43,10 @@ async def create_batch_and_files(
     return batch_id
 
 
-async def get_files_by_batch(batch_id: UUID, session: AsyncSession):
-    statement = select(Files).where(Files.batch_id == batch_id)
-    results = await session.exec(statement)
-    return results.all()
+async def get_file_id_by_batch(batch_id: UUID, session: AsyncSession):
+    statement = select(Files.file_id).where(Files.batch_id == batch_id)
+    results = await session.execute(statement)
+    return results.scalars().all()
 
 
 # Use sync tasks when rq is involved

@@ -1,9 +1,10 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlmodel import Column, Field, Relationship, SQLModel
 
 
 class FileStatus(str, Enum):
@@ -23,10 +24,11 @@ class BatchStatus(str, Enum):
 
 
 class Files(SQLModel, table=True):
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    status: FileStatus = Field(default=FileStatus.uploaded)
+    file_id: UUID = Field(default_factory=uuid4, primary_key=True)
     batch_id: UUID = Field(foreign_key="batch.id")
     filename: str
+    json_data: Dict[str, Any] = Field(default=None, sa_column=Column(JSONB))
+    status: FileStatus = Field(default=FileStatus.uploaded)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     batch: Optional["Batch"] = Relationship(back_populates="files")
