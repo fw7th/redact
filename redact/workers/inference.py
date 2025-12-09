@@ -6,17 +6,16 @@ import time
 from uuid import UUID
 
 # Temporary, just for prod
-# sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
+sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 import cv2
 import pytesseract
-from sqlalchemy.orm import Session
 from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from redact.core.config import REDACT_DIR, UPLOAD_DIR
-from redact.core.database import AsyncSessionLocal, get_async_session
-from redact.services.storage import get_file_id_by_batch, update_batch_status
-from redact.sqlschema.tables import Batch, Files, FileStatus
+from redact.core.database import AsyncSessionLocal
+from redact.services.storage import get_file_id_by_batch, update_batch_status_async
+from redact.sqlschema.tables import Files, FileStatus
+from redact.workers.worker import predict_entities
 
 labels = [
     "person",
@@ -31,43 +30,121 @@ labels = [
 ]
 
 
-def NER(json_files: list[str], model):
-    for json_path in json_files:
-        try:
-            with open(json_path, "r") as file:
-                data = json.load(file)
+async def NER(batch_id: UUID):
+    """
+    Perform NER with the loaded model.
+    """
+    async with AsyncSessionLocal() as session:
+        file_ids = await get_file_id_by_batch(batch_id, session)
+        for file_id in file_ids:
+            str_uuid = str(file_id)
 
-            texts = " ".join(result["text"] for result in data["ocr"])
+            try:
+                result = await session.execute(
+                    select(Files.json_data).where(Files.file_id == str_uuid)
+                )
 
-            entities = model.predict_entities(texts, labels, threshold=0.25)
+                data = result.scalars().one()
 
-            for i in range(0, len(data["ocr"])):
-                for entity in entities:
-                    if entity["text"] == data["ocr"][i]["text"]:
-                        data["ocr"][i]["label"] = entity["label"]
+                # Join full text
+                full_text = " ".join(result["text"] for result in data["ocr"])
 
-                    print(entity["text"], "=>", entity["label"])
+                try:
+                    print("Early")
+                    entities = await asyncio.to_thread(
+                        predict_entities, full_text, labels
+                    )  # Perform NER w/ GLiNER
 
-        except FileNotFoundError:
-            print(f"Error: The file '{json_path}' was not found.")
-        except json.JSONDecodeError:
-            print(f"Error: Could not decode JSON from the file '{json_path}'.")
-        except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+                    # Build fast lookup dict: word -> label
+                    print("Done with predict_entities")
+                    entity_map = {}
+                    for entity in entities:
+                        for token in entity["text"].split(" "):
+                            entity_map[token] = entity["label"]
+
+                    # Update OCR records using 0(1) lookup
+                    for item in data["ocr"]:
+                        txt = item["text"]
+                        if txt in entity_map:
+                            item["entity"] = entity_map[txt]
+
+                    # Update the DB to store the JSON
+                except Exception as e:
+                    print(f"Error performing NER on images. {e}")
+
+                json_table = await session.get(Files, str_uuid)
+                if not json_table:
+                    raise ValueError(f"Document {str_uuid} not found.")
+
+                json_table.json_data = data
+                session.add(json_table)
+                await session.commit()
+                await session.refresh(json_table)
+
+            except json.JSONDecodeError:
+                print(f"Error: Could not decode JSON from the file '{file_id}'.")
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
 
 
-def redact(json_files: list[str]):
-    for json_path in json_files:
-        try:
-            with open(json_path, "r") as file:
-                data = json.load(file)
+async def redact(batch_id):
+    print("BEGAIN REDACT FUNC")
+    async with AsyncSessionLocal() as session:
+        file_ids = await get_file_id_by_batch(batch_id, session)
+        for file_id in file_ids:
+            str_uuid = str(file_id)
 
-        except FileNotFoundError:
-            print(f"Error: The file '{json_path}' was not found.")
-        except json.JSONDecodeError:
-            print(f"Error: Could not decode JSON from the file '{json_path}'.")
-        except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            result = await session.execute(
+                select(Files.filename, Files.json_data).where(Files.file_id == str_uuid)
+            )
+            row = result.first()
+            image, data = row  # return (image_name, json) from query
+            print("In redact function")
+
+            image_name, old_extension = os.path.splitext(
+                image
+            )  # Get image name w/o extension
+            document_path = os.path.join(UPLOAD_DIR, image)  # Path to uploaded images
+            print(document_path)
+
+            cv_image = cv2.imread(document_path)
+            copied_image = cv_image.copy()
+            try:
+                for item in data["ocr"]:
+                    if item["entity"] is not None:
+                        redact_area = [
+                            [bbox_num // 3 for bbox_num in inner_list]
+                            for inner_list in item["bbox"]
+                        ]  # Scale image bbox back to original value
+                        top_left = redact_area[0]
+                        bottom_right = redact_area[1]
+                        color = (0, 0, 0)  # Black color
+                        thickness = -1  # Filled rectangle
+
+                        cv2.rectangle(
+                            copied_image, top_left, bottom_right, color, thickness
+                        )
+                    else:
+                        pass
+
+                redact_image_name = f"{image_name}_redacted{old_extension}"
+
+                save_path = os.path.join(str(REDACT_DIR), redact_image_name)
+
+                print(type(REDACT_DIR))
+                cv2.imwrite(save_path, copied_image)
+
+            except Exception as e:
+                print(f"Could not resolve file name. Error: {e}")
+
+            json_table = await session.get(Files, str_uuid)
+            if not json_table:
+                raise ValueError(f"Document {str_uuid} not found.")
+
+            json_table.redact_filename = redact_image_name
+            session.add(json_table)
+            await session.commit()
+            await session.refresh(json_table)
 
 
 def preprocess_ocr(image: str):
@@ -91,10 +168,6 @@ def preprocess_ocr(image: str):
     return thresh
 
 
-def sync_document_ocr(batch_id: UUID):
-    asyncio.run(document_ocr(batch_id))
-
-
 async def document_ocr(batch_id: UUID):
     async with AsyncSessionLocal() as session:
         file_ids = await get_file_id_by_batch(batch_id, session)
@@ -107,12 +180,12 @@ async def document_ocr(batch_id: UUID):
             document = str(result.scalars().one())
 
             data = {"ocr": []}
-            file_name, old_extension = os.path.splitext(document)
             document_path = os.path.join(UPLOAD_DIR, document)
+            print(document_path)
 
-            img = preprocess_ocr(document_path)
-            results = pytesseract.image_to_data(
-                img, output_type=pytesseract.Output.DICT
+            img = await asyncio.to_thread(preprocess_ocr, document_path)
+            results = await asyncio.to_thread(
+                pytesseract.image_to_data, img, output_type=pytesseract.Output.DICT
             )
 
             # Loop over each detected text localization
@@ -148,21 +221,30 @@ async def document_ocr(batch_id: UUID):
             await session.refresh(json_table)
 
 
-def full_inference(task_id):
+async def full_inference(batch_id: UUID):
     """Performs OCR + NER"""
-    print(f"Starting task {task_id}")
+    print(f"Processing batch: {batch_id}")
     try:
-        update_batch_status(batch_id, FileStatus.processing)
-        time.sleep(duration)
-        update_batch_status(batch_id, FileStatus.complete)
+        start_time = time.perf_counter()
+
+        await update_batch_status_async(batch_id, FileStatus.processing)
+        await document_ocr(batch_id)
+        await NER(batch_id)
+        await redact(batch_id)
+        await update_batch_status_async(batch_id, FileStatus.complete)
+
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+
+        print(f"Task {batch_id} completed after {elapsed_time:.3f} seconds")
 
     except Exception as e:
         print(f"Exception: {e}")
-        update_batch_status(batch_id, FileStatus.failed)
+        await update_batch_status_async(batch_id, FileStatus.failed)
 
-    result = f"Task {task_id} completed after {duration} seconds"
-    print(result)
-    return result
+
+def sync_full_inference(batch_id: UUID):
+    asyncio.run(full_inference(batch_id))
 
 
 def simulate_model_work(batch_id: UUID, to_wait: int):

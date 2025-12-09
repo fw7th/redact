@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from redact.core.database import SessionLocal
+from redact.core.database import AsyncSessionLocal, SessionLocal
 from redact.sqlschema.tables import Batch, Files, FileStatus
 
 
@@ -79,10 +79,30 @@ def update_batch_status(batch_id: UUID, status: str):
 
 
 # for async usage (FastAPI)
-async def update_batch_status_async(
-    session: AsyncSession, batch_id: UUID, status: FileStatus
-):
-    async with session.begin():
-        # use shared set_batch_and_files_status logic
-        pass  # write logic for async batch update later
-    pass
+async def update_batch_status_async(batch_id: UUID, status: FileStatus):
+    try:
+        async with AsyncSessionLocal() as session:
+            async with session.begin():
+                # Create and add batch record
+                batch = await session.get(Batch, batch_id)
+
+                if not batch:
+                    raise ValueError("Batch not found")
+
+                batch.status = status
+
+                # Propagate to files
+                # Return batch_id matching column for all rows, in a list.
+                result = await session.execute(
+                    select(Files).where(Files.batch_id == batch_id)
+                )
+
+                files = result.scalars().all()
+
+                for f in files:
+                    f.status = status
+
+    except SQLAlchemyError as e:
+        # handle/log later
+        print("DB Error: ", e)
+        raise

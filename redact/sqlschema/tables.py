@@ -28,6 +28,7 @@ class Files(SQLModel, table=True):
     batch_id: UUID = Field(foreign_key="batch.id")
     filename: str
     json_data: Dict[str, Any] = Field(default=None, sa_column=Column(JSONB))
+    redact_filename: Optional[str] = Field(default=None)
     status: FileStatus = Field(default=FileStatus.uploaded)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

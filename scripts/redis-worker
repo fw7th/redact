@@ -21,7 +21,7 @@ fi
 
 # Run the worker
 echo "🚀 Running worker..."
-python -m workers.worker
+python -m redact.workers.worker
 
 
 ### 🔧 Run the worker

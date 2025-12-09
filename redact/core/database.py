@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlmodel import SQLModel
 
 load_dotenv()
-ASYNC_DB_URL = os.getenv("DB_URL")
+ASYNC_DB_URL = os.getenv("ASYNC_DB_URL")
 SYNC_DB_URL = os.getenv("SYNC_DB_URL")
 
 # Validate environment variable

@@ -1,6 +1,6 @@
 import os
 
-# Temporary, just for prod
+# Temporary, just for dev
 # sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 import shutil
 import sys
@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import List
 
 from fastapi import (
-    BackgroundTasks,
     Depends,
     FastAPI,
     File,
@@ -19,8 +18,6 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
-from gliner import GLiNER
 from rq.job import Job
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -29,7 +26,6 @@ from redact.core.database import get_async_session, init_async_db, init_sync_db
 from redact.core.log import LOG
 from redact.core.redis import predict_queue, redis_conn
 from redact.services.storage import create_batch_and_files
-from redact.workers.inference import simulate_model_work, sync_document_ocr
 
 # Suppress TensorFlow/CUDA warnings
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # Suppress TF warnings
@@ -52,21 +48,16 @@ def create_dirs():
         )
 
 
-ml_model = None
-
-
 # Define the lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup events: Code here runs when the application starts
     LOG.info("Application startup: Initializing resources...")
-    global ml_model
-    ml_model = GLiNER.from_pretrained("urchade/gliner_medium-v2.1")
-    print("ML model loaded.")
     await init_async_db()
     init_sync_db()
     # Example: database connection, loading models, etc.
     # Shutdown events: Code here runs when the application shuts down
+    print("ML model loaded.")
     yield
     LOG.info("Application shutdown: Cleaning up resources...")
     LOG.info("Cleanup complete.")
@@ -164,8 +155,10 @@ async def create_prediction(
     # Save to database
     batch_id = await create_batch_and_files(files, session)
 
-    # Simulate work (model call)
-    job = predict_queue.enqueue(sync_document_ocr, batch_id)
+    # Enqueue model processing job
+    job = predict_queue.enqueue(
+        "redact.workers.inference.sync_full_inference", batch_id
+    )
 
     return {
         "job_id": job.id,
@@ -188,19 +181,17 @@ async def get_task_status(job_id: str):
         return {"error": f"Job {job_id} not found"}
 
 
-"""
-For Users to request a file, maybe their download etc. Template for now.
-@app.get("/files/{filename}")
-async def get_file(filename: str, user: User = Depends(get_current_user)):
-    file_path = f"uploads/{user.id}/{filename}"
-
+# For Users to request a file, maybe their download.
+@app.get("/images/{image_name}")
+async def get_image(image_name: str):
+    file_path = os.path.join(REDACT_DIR, image_name)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found.")
 
     # Optional: Add access control logic here
     # Check DB to see if the user should have access to this file
-
-    return FileResponse(
-        path=file_path, media_type="application/octet-stream", filename=filename
-    )
-"""
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename=image_name)
+    else:
+        # You can handle the case where the image is not found
+        return {"message": "Image not found"}, 404
