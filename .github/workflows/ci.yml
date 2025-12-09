@@ -55,7 +55,10 @@ jobs:
           REDIS_HOST: "localhost"
           REDIS_PORT: 6379
           REDIS_PASSWORD: ""
-          BASE_DIR: "uploads"
+          BASE_DIR: "server_imgs"
+					REDACTED: "redacted_imgs"
+					UPLOADED: "uploads"
+					
         run: pytest tests/ --cov=. --cov-report=term --cov-report=xml
       
       - name: Upload coverage to Coveralls
