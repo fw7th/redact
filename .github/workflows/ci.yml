@@ -51,7 +51,7 @@ jobs:
 
       - name: Run tests with pytest
         env:
-          DB_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+          ASYNC_DB_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
           SYNC_DB_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
           REDIS_HOST: "localhost"
           REDIS_PORT: 6379
