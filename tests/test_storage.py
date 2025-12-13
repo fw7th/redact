@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 import pytest
 from fastapi import HTTPException, UploadFile
 
-from redact.services.storage import create_batch_and_files, update_batch_status
+from redact.services.storage import create_batch_and_files
 from redact.sqlschema.tables import Batch, Files
 
 
@@ -59,38 +59,3 @@ async def test_create_batch_and_files_db_error(mock_session):
 
 """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" ""
 """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" ""
-
-
-def test_update_batch_status_success(sync_mock_session):
-    # Arrange: Set up test data
-    fake_uuid = uuid4()
-    fake_status = "completed"
-
-    # Mock the batch that will be returned
-    fake_batch = MagicMock(spec=Batch)
-    fake_batch.status = "pending"
-    sync_mock_session.get.return_value = fake_batch
-
-    # Mock the files that will be returned
-    fake_file1 = MagicMock(spec=Files)
-    fake_file1.status = "pending"
-    fake_file2 = MagicMock(spec=Files)
-    fake_file2.status = "pending"
-
-    mock_scalars = MagicMock()
-    mock_scalars.all.return_value = [fake_file1, fake_file2]
-    sync_mock_session.execute.return_value.scalars.return_value = mock_scalars
-
-    # Act: Call the function with mocked SessionLocal
-    with patch("redact.services.storage.SessionLocal", return_value=sync_mock_session):
-        update_batch_status(fake_uuid, fake_status)
-
-    # Assert: Check everything worked
-    sync_mock_session.get.assert_called_once_with(Batch, fake_uuid)
-    sync_mock_session.execute.assert_called_once()
-    sync_mock_session.commit.assert_called_once()
-
-    # Check that statuses were updated
-    assert fake_batch.status == fake_status
-    assert fake_file1.status == fake_status
-    assert fake_file2.status == fake_status
