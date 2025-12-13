@@ -1,37 +1,33 @@
 import os
-
-# Temporary, just for dev
-# sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 import shutil
 import sys
-import warnings
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List
+from uuid import UUID
 
 from fastapi import (
     Depends,
     FastAPI,
     File,
     HTTPException,
-    Response,
     UploadFile,
 )
-from fastapi.responses import FileResponse
-from rq.job import Job
+from fastapi.responses import Response
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from redact.core.config import IMAGE_DIR, REDACT_DIR, UPLOAD_DIR
 from redact.core.database import get_async_session, init_async_db, init_sync_db
 from redact.core.log import LOG
-from redact.core.redis import predict_queue, redis_conn
-from redact.services.storage import create_batch_and_files
-
-# Suppress TensorFlow/CUDA warnings
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # Suppress TF warnings
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Disable GPU search entirely
-os.environ["JAX_PLATFORM_NAME"] = "cpu"
-warnings.filterwarnings("ignore")
+from redact.core.redis import predict_queue
+from redact.core.zip import zip_files
+from redact.services.storage import (
+    create_batch_and_files,
+    get_file_id_by_batch,
+    update_batch_status_async,
+)
+from redact.sqlschema.tables import Batch, BatchStatus, Files
 
 
 def create_dirs():
@@ -154,44 +150,76 @@ async def create_prediction(
 
     # Save to database
     batch_id = await create_batch_and_files(files, session)
+    await update_batch_status_async(batch_id, BatchStatus.processing)
 
     # Enqueue model processing job
-    job = predict_queue.enqueue(
-        "redact.workers.inference.sync_full_inference", batch_id
-    )
+    predict_queue.enqueue("redact.workers.inference.sync_full_inference", batch_id)
 
     return {
-        "job_id": job.id,
+        "batch_id": batch_id,
         "status": "queued",
     }
 
 
-@app.get("/predict/{job_id}")
-async def get_task_status(job_id: str):
+@app.get("/predict/check/{batch_id}")
+async def get_task_status(
+    batch_id: UUID, session: AsyncSession = Depends(get_async_session)
+):
     """Check the status of a task"""
     try:
-        job = Job.fetch(job_id, connection=redis_conn)
-        return {
-            "job_id": job.id,
-            "status": job.get_status(),
-            "result": job.result if job.is_finished else None,
-            "error": str(job.exc_info) if job.is_failed else None,
-        }
+        status_query = await session.execute(
+            select(Batch.status).where(Batch.id == batch_id)
+        )
+        status = status_query.scalars().one()
+
+        if status == BatchStatus.completed:
+            return {"status": "completed"}
+
+        elif status == BatchStatus.failed:
+            return {"status": "failed"}
+
+        elif status == BatchStatus.processing:
+            return {"status": "processing"}
+
     except Exception as e:
-        return {"error": f"Job {job_id} not found"}
+        raise HTTPException(status_code=404, detail=f"Batch {batch_id} not found")
 
 
 # For Users to request a file, maybe their download.
-@app.get("/images/{image_name}")
-async def get_image(image_name: str):
-    file_path = os.path.join(REDACT_DIR, image_name)
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found.")
+@app.get("/predict/{batch_id}")
+async def get_image(batch_id: UUID, session: AsyncSession = Depends(get_async_session)):
+    file_list = []
+    try:
+        file_ids = await get_file_id_by_batch(batch_id, session)
+        for file_id in file_ids:
+            str_uuid = str(file_id)
 
-    # Optional: Add access control logic here
-    # Check DB to see if the user should have access to this file
-    if os.path.exists(file_path):
-        return FileResponse(file_path, filename=image_name)
-    else:
-        # You can handle the case where the image is not found
-        return {"message": "Image not found"}, 404
+            result = await session.execute(
+                select(Files.redact_filename).where(Files.file_id == str_uuid)
+            )
+
+            redact_image_name = result.scalars().one()
+            file_path = os.path.join(REDACT_DIR, redact_image_name)
+            if not os.path.exists(file_path):
+                # Handle case where image is not found.
+                raise HTTPException(status_code=404, detail="File not found.")
+
+            file_list.append(file_path)
+        # Optional: Add access control logic here
+        # Check DB to see if the user should have access to this file
+        zip_bytes = zip_files(file_list)
+        zip_filename = "redacted_files.zip"
+
+        return Response(
+            content=zip_bytes.getvalue(),
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename={zip_filename}"},
+        )
+
+    except:
+        raise HTTPException(
+            detail="There was an error processing the data", status_code=400
+        )
+
+    finally:
+        zip_bytes.close()

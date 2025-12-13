@@ -16,9 +16,9 @@ class FileStatus(str, Enum):
 
 
 class BatchStatus(str, Enum):
-    uploaded = "uploaded"
+    uploaded = "queued"
     processing = "processing"
-    completed = "completed"
+    completed = "complete"
     partially_failed = "partially_failed"
     failed = "failed"
 

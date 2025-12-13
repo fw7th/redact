@@ -7,6 +7,7 @@ from uuid import UUID
 
 # Temporary, just for prod
 sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
+
 import cv2
 import pytesseract
 from sqlmodel import select
