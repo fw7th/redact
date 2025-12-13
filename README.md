@@ -58,54 +58,41 @@ Showcases:
 - Containerized: Built for easy deployment with a Dockerfile.
 - Benchmarked: Includes load testing scripts using Locust and benchmarks for performance analysis.
 
-## 🚧 Project Status: [Phase 3 of 6]
+## 🚧 Project Status: [Phase 5 of 6]
 
-Current: Making pytorch go `brrrrrr` i.e model creation
-Next: Integration and testing (meh)
+Current: Integration and testing
 
 ### Goal
 Process batches of document images, automatically detect and redact sensitive information (PII).
 
 ## Architecture
 <!-- TODO: Add diagram here once Phase 5 (integration) begins -->
-[Diagram/description - update as you build #kinda lazy to do this one icl]
+[Diagram/description - update as you build (kinda lazy to do this one icl)]
 
 ## Features
 - [x] Batch image upload
 - [x] Asynchronous processing
-- [ ] Custom redaction model
-- [ ] Enable batch prediction
-- [ ] REST API
-- [ ] Add auth
-- [ ] Results retrieval
+- [x] Redaction model
+- [x] Enable batch prediction
+- [x] REST API
+- [x] Results retrieval
 - [ ] Deploy to Docker/Kubernetes
 
 ## Phases
 - [ ] Phase 1: Basic upload 
 - [ ] Phase 2: Job tracking 
 - [ ] Phase 3: Async infrastructure 
-- [x] Phase 4: Model development (IN PROGRESS)
-- [ ] Phase 5: Integration
+- [ ] Phase 4: Model development (IN PROGRESS)
+- [x] Phase 5: Integration
 - [ ] Phase 6: Deployment
 
 ## Tech Stack
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688?style=flat-square&logo=fastapi)
-![Uvicorn](https://img.shields.io/badge/ASGI%20Server-Uvicorn-FF9900?style=flat-square)
-
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
-![SQLAlchemy](https://img.shields.io/badge/ORM-SQLAlchemy-D7174C?style=flat-square)
-![Redis](https://img.shields.io/badge/Cache%20|%20Broker-Redis-DC382D?style=flat-square&logo=redis&logoColor=white)
 ![RQ](https://img.shields.io/badge/Job%20Queue-Python--RQ-A41E22?style=flat-square)
 
-![PyTorch](https://img.shields.io/badge/ML%20Framework-PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
-![Model](https://img.shields.io/badge/Model%20|%20OCR-Custom%20TBD-539165?style=flat-square)
-
 ![Docker](https://img.shields.io/badge/Containerization-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Docker Compose](https://img.shields.io/badge/Orchestration-Compose-0062E5?style=flat-square&logo=docker&logoColor=white)
-
 ![Tests](https://img.shields.io/badge/Tests-Pytest-0A9EDC?style=flat-square)
-![Linter](https://img.shields.io/badge/Linter-Ruff-663399?style=flat-square)
 ![Load Testing](https://img.shields.io/badge/Benchmarking-Locust-5CB53C?style=flat-square)
 
 ## Performance
@@ -114,12 +101,11 @@ Process batches of document images, automatically detect and redact sensitive in
 
 | Endpoint              | Operation | Payload Size | Concurrent Users | Requests/sec | Avg Latency (ms) | P95 Latency (ms) | Error Rate | Notes                                      |
 |-----------------------|-----------|--------------|------------------|---------------|------------------|------------------|------------|---------------------------------------------|
-| `POST /predict`       | Create    | 1MB image     | 1                | 0.66          | 1450             | 1600             | 0%         | Includes file validation, disk write, Redis |
-| `GET /predict/{id}`   | Read      | N/A           | 10               |               |                  |                  |            | Fetches job status from Redis               |
-| `POST /items`         | Create    | 512B JSON     |                  |               |                  |                  |            | Basic DB insert                             |
-| `GET /items/{id}`     | Read      | N/A           |                  |               |                  |                  |            | Add caching notes if applicable             |
-| `PUT /items/{id}`     | Update    | 1KB JSON      |                  |               |                  |                  |            |                                             |
-| `DELETE /items/{id}`  | Delete    | N/A           |                  |               |                  |                  |            |                                             |
+| `POST /predict`             | Create    | 100KB image   | 2                | 0.67          | 34.95            | 56               | 0%         | Includes file validation, disk write, Redis, ML model inference |
+| `GET /predict/{id}`         | Read      | N/A           | 10               | 3.58          | 10.38            | 32               | 0%         |Retrieve processed document from server                          |
+| `GET /predict/check/{id}`   | Read      | N/A           | 10               | 3.52          | 9.94             | 28               | 0%         | Fetches job status from Redis                                   |
+| `POST /items`               | Create    | 512B JSON     |                  |               |                  |                  |            | Basic DB insert                                                 |
+| `DELETE /items/{id}`        | Delete    | N/A           |                  |               |                  |                  |            |                                                                 |
 
 > **Legend**:
 > - *Payload Size*: Size of file or JSON sent in the request.
@@ -129,11 +115,12 @@ Process batches of document images, automatically detect and redact sensitive in
 
 
 ### Model Inference Benchmark Table
-- [Model: TBD post Phase 4]
+- [Models]
+- [NER: GLiNER (Medium v2.1 {Remember to cite urchade and the GLiNER paper})]
+- [OCR: Tesseract w/ py-tesseract]
 
 | Model Name         | Input Size        | Avg Inference Time (ms) | Throughput (req/sec) | Peak RAM Usage | Device | Notes                                  |
 |--------------------|-------------------|--------------------------|-----------------------|----------------|--------|-----------------------------------------|
-| `simulate_model_work` | N/A (simulated) | 30000 (sleep)            | 0.03                  | N/A            | CPU    | Simulated workload                      |
 | `real_model.onnx`  | 224x224 image     |                          |                       |                | CPU    | Replace with real benchmark             |
 | `resnet50`         | 512x512 image     |                          |                       |                | GPU    | ONNXRuntime on GPU                      |
 | `custom_model.pt`  | Variable          |                          |                       |                | CPU/GPU| Fill in after deployment                |
@@ -225,7 +212,7 @@ redact/
 
 ## Future Improvements
 - [ ] Web UI
-- [ ] Multiple output formats
+- [x] Multiple output formats
 - [x] Batch job scheduling
 
 ## 📄 License

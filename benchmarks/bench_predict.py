@@ -6,7 +6,7 @@ import httpx
 # from core.log import LOG
 
 URL = "http://localhost:8000/predict"
-TEST_IMAGE = Path(__file__).parent / "test_assets" / "file3.webp"
+TEST_IMAGE = Path(__file__).parent.parent / "media" / "mobile2.jpg"
 
 
 def benchmark_predict():
