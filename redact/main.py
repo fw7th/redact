@@ -236,4 +236,4 @@ async def drop_batch(
     except Exception:
         return {f"Batch ID: {batch_id} is not a valid ID."}
 
-    return {f"Files linked to batch ID: {batch_id} deleted from database."}
+    return {f"Batch {batch_id} deleted from database."}
