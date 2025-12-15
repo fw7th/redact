@@ -1,12 +1,14 @@
+import os
 from datetime import datetime
 from typing import List
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.exc import SQLAlchemyError
-from sqlmodel import select
+from sqlmodel import delete, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from redact.core.config import REDACT_DIR, UPLOAD_DIR
 from redact.core.database import AsyncSessionLocal
 from redact.sqlschema.tables import Batch, BatchStatus, Files
 
@@ -72,6 +74,44 @@ async def update_batch_status_async(batch_id: UUID, status: BatchStatus):
 
                 for f in files:
                     f.status = status
+
+    except SQLAlchemyError as e:
+        # handle/log later
+        print("DB Error: ", e)
+        raise
+
+
+async def delete_batch_db(batch_id: UUID, session: AsyncSession):
+    try:
+        async with session.begin():
+            batch = await session.get(Batch, batch_id)
+
+            if not batch:
+                raise ValueError("Batch not found")
+
+            statement = select(Files.filename, Files.redact_filename).where(
+                Files.batch_id == batch_id
+            )
+            results = await session.execute(statement)
+            filenames = results.all()
+
+            for filename in filenames:
+                file = os.path.join(UPLOAD_DIR, filename[0])
+                redact_file = os.path.join(REDACT_DIR, filename[1])
+
+                if os.path.exists(file):
+                    os.remove(file)
+                    print(f"File '{file}' has been deleted.")
+
+                if os.path.exists(redact_file):
+                    os.remove(redact_file)
+                    print(f"redact_file '{redact_file}' has been deleted.")
+
+            # Delete all rows with this batch_id
+            statement2 = delete(Files).where(Files.batch_id == batch_id)
+
+            await session.execute(statement2)
+            await session.delete(batch)  # Delete the row
 
     except SQLAlchemyError as e:
         # handle/log later

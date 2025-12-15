@@ -24,6 +24,7 @@ from redact.core.redis import predict_queue
 from redact.core.zip import zip_files
 from redact.services.storage import (
     create_batch_and_files,
+    delete_batch_db,
     get_file_id_by_batch,
     update_batch_status_async,
 )
@@ -223,3 +224,16 @@ async def get_image(batch_id: UUID, session: AsyncSession = Depends(get_async_se
 
     finally:
         zip_bytes.close()
+
+
+@app.delete("/predict/drop/{batch_id}")
+async def drop_batch(
+    batch_id: UUID, session: AsyncSession = Depends(get_async_session)
+):
+    try:
+        await delete_batch_db(batch_id, session)
+
+    except Exception:
+        return {f"Batch ID: {batch_id} is not a valid ID."}
+
+    return {f"Files linked to batch ID: {batch_id} deleted from database."}
