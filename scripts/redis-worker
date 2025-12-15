@@ -37,3 +37,8 @@ Copy code
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+
+
+My .bashrc alias:
+alias redis-worker="cd ~ && cd venvs && pyenv activate redact && cd ~ && sudo systemctl start redis && cd ~/redact && python -m redact.workers.worker"
+h
