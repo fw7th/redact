@@ -102,10 +102,9 @@ Process batches of document images, automatically detect and redact sensitive in
 | Endpoint              | Operation | Payload Size | Concurrent Users | Requests/sec | Avg Latency (ms) | P95 Latency (ms) | Error Rate | Notes                                      |
 |-----------------------|-----------|--------------|------------------|---------------|------------------|------------------|------------|---------------------------------------------|
 | `POST /predict`             | Create    | 100KB image   | 2                | 0.67          | 34.95            | 56               | 0%         | Includes file validation, disk write, Redis, ML model inference |
-| `GET /predict/{id}`         | Read      | N/A           | 10               | 3.58          | 10.38            | 32               | 0%         |Retrieve processed document from server                          |
+| `GET /predict/{id}`         | GET       | N/A           | 10               | 3.58          | 10.38            | 32               | 0%         |Retrieve processed document from server                          |
 | `GET /predict/check/{id}`   | Read      | N/A           | 10               | 3.52          | 9.94             | 28               | 0%         | Fetches job status from Redis                                   |
-| `POST /items`               | Create    | 512B JSON     |                  |               |                  |                  |            | Basic DB insert                                                 |
-| `DELETE /items/{id}`        | Delete    | N/A           |                  |               |                  |                  |            |                                                                 |
+| `DELETE /predict/drop/{id}` | Delete    | N/A           | 10               | 3.47          | 10.43            | 30               |            | Delete a batch and all related files from DB                    |
 
 > **Legend**:
 > - *Payload Size*: Size of file or JSON sent in the request.

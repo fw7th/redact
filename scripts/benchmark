@@ -9,7 +9,7 @@ echo "Running Locust load test..."
 locust -f ../benchmarks/locustfile.py \
     --host=http://localhost:8000 \
     --users=10 \
-    --html=report.html \
+    --html=./benchmarks/report.html \
     --headless \
     --spawn-rate=15 \
     --run-time=20s \

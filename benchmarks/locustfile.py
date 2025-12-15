@@ -15,12 +15,21 @@ class PredictUser(HttpUser):
 
     """
     @task
-    def check(self):
+    def check_(self):
         batch_id = 1
         self.client.get(f"/predict/{batch_id}", name="/predict/[batch_id]")
     """
-
+    """
     @task
     def check(self):
         batch_id = 1
         self.client.get(f"/predict/check/{batch_id}", name="/predict/check/[batch_id]")
+    """
+
+    @task
+    def delete(self):
+        batch_id = 1
+        self.client.delete(
+            f"http://localhost:8000/predict/drop/{batch_id}",
+            name="/predict/drop/[batch_id]",
+        )
