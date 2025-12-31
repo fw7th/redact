@@ -33,22 +33,6 @@
 
 --->
 
----## Project Structure
-Main directories and their purpose for anyone looking to understand or extend the codebase.
-
-```text
-redact/
-├── benchmarks/         # Load testing and performance scripts (Locust, custom benchmarks)
-├── redact/             # Main source code package
-│   ├── api/            # FastAPI router definitions and main application entrypoint
-│   ├── core/           # Configuration, logging, database/redis connection handling
-│   ├── services/       # Business logic layer (e.g., storage abstraction)
-│   ├── sqlschema/      # SQLAlchemy model definitions
-│   └── workers/        # Asynchronous task processing logic (inference, main worker)
-├── scripts/            # Helper scripts for development (benchmarking, service setup)
-├── tests/              # Unit and integration tests (uses pytest)
-└── requirements.txt    # All project dependencies
-
 
 # Redact
 <p align="center">
