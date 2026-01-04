@@ -33,7 +33,6 @@
 
 --->
 
----
 
 # Redact
 <p align="center">
@@ -86,7 +85,7 @@ Process batches of document images, automatically detect and redact sensitive in
 - [x] Phase 5: Integration
 - [ ] Phase 6: Deployment
 
-## Tech Stack
+## Deps
 ![FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688?style=flat-square&logo=fastapi)
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
 ![RQ](https://img.shields.io/badge/Job%20Queue-Python--RQ-A41E22?style=flat-square)
@@ -190,24 +189,6 @@ These provide interactive documentation of all available endpoints with live tes
 - `Postgres`, I'm familiar with the dbms already, no need for any external onboarding.
 - `Redis`: Read about persistence, speed, and distributed support. Decided to go with it over normal multiprocessing.Queue, it scales and it integrates well with Celery and RQ. Not using Kafka, or rabbit, project isn't that advanced.
 - `RQ`: Initially wanted to use Celery, however after much investigation, I realized that it's probably too advanced for my use case. I'd rather avoid the setup overhead, just wanted simple and quick setup.
-
-## Project Structure
-Main directories and their purpose for anyone looking to understand or extend the codebase.
-
-```text
-redact/
-├── benchmarks/         # Load testing and performance scripts (Locust, custom benchmarks)
-├── redact/             # Main source code package
-│   ├── api/            # FastAPI router definitions and main application entrypoint
-│   ├── core/           # Configuration, logging, database/redis connection handling
-│   ├── services/       # Business logic layer (e.g., storage abstraction)
-│   ├── sqlschema/      # SQLAlchemy model definitions
-│   └── workers/        # Asynchronous task processing logic (inference, main worker)
-├── scripts/            # Helper scripts for development (benchmarking, service setup)
-├── tests/              # Unit and integration tests (uses pytest)
-└── requirements.txt    # All project dependencies
-
-```
 
 ## Future Improvements
 - [ ] Web UI
