@@ -33,6 +33,7 @@
 
 --->
 
+---
 
 # Redact
 <p align="center">
@@ -64,10 +65,6 @@ Current: Integration and testing
 ### Goal
 Process batches of document images, automatically detect and redact sensitive information (PII).
 
-## Architecture
-<!-- TODO: Add diagram here once Phase 5 (integration) begins -->
-[Diagram/description - update as you build (kinda lazy to do this one icl)]
-
 ## Features
 - [x] Batch image upload
 - [x] Asynchronous processing
@@ -85,17 +82,7 @@ Process batches of document images, automatically detect and redact sensitive in
 - [x] Phase 5: Integration
 - [ ] Phase 6: Deployment
 
-## Deps
-![FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688?style=flat-square&logo=fastapi)
-![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
-![RQ](https://img.shields.io/badge/Job%20Queue-Python--RQ-A41E22?style=flat-square)
-
-![Docker](https://img.shields.io/badge/Containerization-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-Pytest-0A9EDC?style=flat-square)
-![Load Testing](https://img.shields.io/badge/Benchmarking-Locust-5CB53C?style=flat-square)
-
 ## Performance
-[Add benchmarks as you build]
 ### API Benchmarking Table
 
 | Endpoint              | Operation | Payload Size | Concurrent Users | Requests/sec | Avg Latency (ms) | P95 Latency (ms) | Error Rate | Notes                                      |
@@ -115,25 +102,25 @@ Process batches of document images, automatically detect and redact sensitive in
 ### Model Inference Benchmark Table
 - [Models]
 - [NER: GLiNER (Medium v2.1 {Remember to cite urchade and the GLiNER paper})]
-- [OCR: Tesseract w/ py-tesseract]
+- [OCR: Tesseract 5.5.1 w/ py-tesseract]
 
-| Model Name         | Input Size        | Avg Inference Time (ms) | Throughput (req/sec) | Peak RAM Usage | Device | Notes                                  |
-|--------------------|-------------------|--------------------------|-----------------------|----------------|--------|-----------------------------------------|
-| `real_model.onnx`  | 224x224 image     |                          |                       |                | CPU    | Replace with real benchmark             |
-| `resnet50`         | 512x512 image     |                          |                       |                | GPU    | ONNXRuntime on GPU                      |
-| `custom_model.pt`  | Variable          |                          |                       |                | CPU/GPU| Fill in after deployment                |
+| Model Name         | Input Size        | Avg Inference Time (ms)     | Device | Notes                                   |
+|--------------------|-------------------|-----------------------------|--------|-----------------------------------------|
+| `GLiNER v2.1`      | 200 lines of text | 790                         | CPU    | Model has a long cold start 20secs-ish  |
+| `Tesseract`        | 512x512 image     | 0.96                        | CPU    | Tesseract?                              |
 
 > **Legend**:
 > - *Inference Time*: Time to run prediction (ms).
 > - *Throughput*: How many predictions/sec the model can handle.
-> - *Peak RAM*: Max memory used during inference.
-> - *Device*: CPU or GPU.
+
+> *Tests performed in a subprocess.*
+
 
 ## 🔧 Quickstart
 ### Clone the repo
 ```bash
-git clone https://github.com/yourname/redaction-api.git
-cd redaction-api
+git clone https://github.com/fw7th/redact.git
+cd redact
 ```
 
 ### Create and activate virtualenv (optional)
@@ -185,15 +172,10 @@ When the server is running locally, visit:
 These provide interactive documentation of all available endpoints with live testing.
 
 ## Design Decisions
-- `FastAPI`, mainly because it's lighter than Django.
-- `Postgres`, I'm familiar with the dbms already, no need for any external onboarding.
+- `FastAPI`, mainly because it's lighter.
+- `Postgres`, I'm familiar with the dbms already.
 - `Redis`: Read about persistence, speed, and distributed support. Decided to go with it over normal multiprocessing.Queue, it scales and it integrates well with Celery and RQ. Not using Kafka, or rabbit, project isn't that advanced.
 - `RQ`: Initially wanted to use Celery, however after much investigation, I realized that it's probably too advanced for my use case. I'd rather avoid the setup overhead, just wanted simple and quick setup.
-
-## Future Improvements
-- [ ] Web UI
-- [x] Multiple output formats
-- [x] Batch job scheduling
 
 ## 📄 License
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

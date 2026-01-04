@@ -151,7 +151,7 @@ async def create_prediction(
 
     # Save to database
     batch_id = await create_batch_and_files(files, session)
-    await update_batch_status_async(batch_id, BatchStatus.processing)
+    await update_batch_status_async(batch_id, BatchStatus.uploaded)
 
     # Enqueue model processing job
     predict_queue.enqueue("redact.workers.inference.sync_full_inference", batch_id)

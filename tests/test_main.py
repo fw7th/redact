@@ -5,6 +5,8 @@ from uuid import uuid4
 
 import pytest
 
+from redact.services.storage import update_batch_status_async
+
 
 @pytest.mark.asyncio
 async def test_create_prediction_success(client, mock_session):
@@ -18,6 +20,7 @@ async def test_create_prediction_success(client, mock_session):
         patch(
             "redact.main.create_batch_and_files", new_callable=AsyncMock
         ) as mock_create_batch,
+        patch("redact.main.update_batch_status_async") as mock_update_batch,
         patch("redact.main.predict_queue") as mock_queue,
         patch("redact.main.get_async_session", return_value=mock_session),
         patch("builtins.open", create=True),
@@ -41,7 +44,7 @@ async def test_create_prediction_success(client, mock_session):
     # Assert
     assert response.status_code == 200
     data = response.json()
-    assert data["job_id"] == fake_job_id
+    assert data["batch_id"] == str(fake_batch_id)
     assert data["status"] == "queued"
 
 
@@ -81,6 +84,7 @@ async def test_create_prediction_multiple_files(client):
             "redact.main.create_batch_and_files", new_callable=AsyncMock
         ) as mock_create_batch,
         patch("redact.main.predict_queue") as mock_queue,
+        patch("redact.main.update_batch_status_async") as mock_update_batch,
         patch("redact.main.get_async_session"),
         patch("builtins.open", create=True),
         patch("os.path.exists", return_value=False),
