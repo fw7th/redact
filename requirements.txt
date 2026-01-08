@@ -154,4 +154,6 @@ xxhash==3.6.0
 yarl==1.22.0
 zope.event==6.0
 zope.interface==8.0.1
+opencv-python==4.11.0.86
 gliner==0.2.24
+supabase==2.27.1

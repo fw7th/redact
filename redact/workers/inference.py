@@ -246,9 +246,3 @@ async def full_inference(batch_id: UUID):
 
 def sync_full_inference(batch_id: UUID):
     asyncio.run(full_inference(batch_id))
-
-
-def simulate_model_work(batch_id: UUID, to_wait: int):
-    print("Starting Inference")
-    time.sleep(to_wait)
-    print("Ending Inference")

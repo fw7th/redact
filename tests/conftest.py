@@ -41,21 +41,3 @@ def mock_session():
     session.add_all = MagicMock()
 
     return session
-
-
-@pytest.fixture
-def sync_mock_session():
-    """Provides a mocked AsyncSession for database operations"""
-    session = MagicMock(spec=Session)
-
-    # Mock the context manager behavior for regular 'with' statement
-    session.__enter__ = MagicMock(return_value=session)
-    session.__exit__ = MagicMock(return_value=None)
-
-    # Mock common session methods
-    session.get = MagicMock()
-    session.execute = MagicMock()
-    session.commit = MagicMock()
-    session.rollback = MagicMock()
-
-    return session

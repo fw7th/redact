@@ -18,7 +18,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from redact.core.config import IMAGE_DIR, REDACT_DIR, UPLOAD_DIR
-from redact.core.database import get_async_session, init_async_db, init_sync_db
+from redact.core.database import get_async_session, init_async_db
 from redact.core.log import LOG
 from redact.core.redis import predict_queue
 from redact.core.zip import zip_files
@@ -51,7 +51,6 @@ async def lifespan(app: FastAPI):
     # Startup events: Code here runs when the application starts
     LOG.info("Application startup: Initializing resources...")
     await init_async_db()
-    init_sync_db()
     # Example: database connection, loading models, etc.
     # Shutdown events: Code here runs when the application shuts down
     print("ML model loaded.")
@@ -181,6 +180,9 @@ async def get_task_status(
 
         elif status == BatchStatus.processing:
             return {"status": "processing"}
+
+        else:
+            return {"status": "queued"}
 
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Batch {batch_id} not found")
