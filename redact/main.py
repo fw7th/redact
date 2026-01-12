@@ -1,11 +1,13 @@
+import asyncio
 import os
 import shutil
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import List
+from typing import Annotated, List
 from uuid import UUID
 
+from dotenv import load_dotenv
 from fastapi import (
     Depends,
     FastAPI,
@@ -16,8 +18,14 @@ from fastapi import (
 from fastapi.responses import Response
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from supabase import AsyncClient
 
-from redact.core.config import IMAGE_DIR, REDACT_DIR, UPLOAD_DIR
+from redact.core.config import (
+    SUPABASE_BUCKET,
+    SUPABASE_KEY,
+    SUPABASE_URL,
+    get_supabase_client,
+)
 from redact.core.database import get_async_session, init_async_db
 from redact.core.log import LOG
 from redact.core.redis import predict_queue
@@ -29,20 +37,6 @@ from redact.services.storage import (
     update_batch_status_async,
 )
 from redact.sqlschema.tables import Batch, BatchStatus, Files
-
-
-def create_dirs():
-    try:
-        # Ensure the base directory exists when the application starts
-        IMAGE_DIR.mkdir(parents=True, exist_ok=True)
-        REDACT_DIR.mkdir(parents=True, exist_ok=True)
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-        return {"message": "Base directory created successfully."}
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create directory: {str(e)}"
-        )
 
 
 # Define the lifespan context manager
@@ -60,7 +54,6 @@ async def lifespan(app: FastAPI):
     # Example: closing database connections, releasing resources
 
 
-create_dirs()
 app = FastAPI(lifespan=lifespan)
 
 
@@ -71,12 +64,13 @@ async def favicon():
 
 @app.post("/predict")
 async def create_prediction(
+    supabase_client: Annotated[AsyncClient, Depends(get_supabase_client)],
     files: List[UploadFile] = File(...),
     session: AsyncSession = Depends(get_async_session),
 ):
-    uploaded_files = []
     for file in files:
-        uploaded_files.append(file.filename)
+        file_content = await file.read()
+
         # Validate file type
         allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
         if file.content_type not in allowed_types:
@@ -104,11 +98,18 @@ async def create_prediction(
                 detail="Filename cannot be empty",
             )
 
-        try:
-            # Save file to disk
-            file_path = os.path.join(UPLOAD_DIR, file.filename)
+        # Save file to supabase storage bucket
+        file_path = f"uploads/{file.filename}"
 
-            """
+        try:
+            # Use the storage client from the initialized supabase client
+            await supabase_client.storage.from_(SUPABASE_BUCKET).upload(
+                path=file_path,
+                file=file_content,
+                file_options={"content-type": file.content_type, "upsert": "true"},
+            )
+
+            """ 
             # Check if file already exists
             if os.path.exists(file_path):
                 raise HTTPException(
@@ -116,9 +117,6 @@ async def create_prediction(
                     detail=f"File '{file.filename}' already exists",
                 )
             """
-
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
 
         except HTTPException:
             # Re-raise HTTP exceptions
@@ -144,7 +142,6 @@ async def create_prediction(
                 status_code=500,  # Internal Server Error
                 detail=f"Unexpected error during file upload: {str(e)}",
             )
-
         finally:
             await file.close()
 
@@ -190,7 +187,11 @@ async def get_task_status(
 
 # For Users to request a file, maybe their download.
 @app.get("/predict/{batch_id}")
-async def get_image(batch_id: UUID, session: AsyncSession = Depends(get_async_session)):
+async def get_image(
+    supabase_client: Annotated[AsyncClient, Depends(get_supabase_client)],
+    batch_id: UUID,
+    session: AsyncSession = Depends(get_async_session),
+):
     file_list = []
     try:
         file_ids = await get_file_id_by_batch(batch_id, session)
@@ -202,15 +203,12 @@ async def get_image(batch_id: UUID, session: AsyncSession = Depends(get_async_se
             )
 
             redact_image_name = result.scalars().one()
-            file_path = os.path.join(REDACT_DIR, redact_image_name)
-            if not os.path.exists(file_path):
-                # Handle case where image is not found.
-                raise HTTPException(status_code=404, detail="File not found.")
+            file_path = f"redacted/{redact_image_name}"
 
             file_list.append(file_path)
         # Optional: Add access control logic here
         # Check DB to see if the user should have access to this file
-        zip_bytes = zip_files(file_list)
+        zip_bytes = await zip_files(supabase_client, file_list)
         zip_filename = "redacted_files.zip"
 
         return Response(

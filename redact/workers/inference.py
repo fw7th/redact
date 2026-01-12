@@ -9,10 +9,12 @@ from uuid import UUID
 sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 
 import cv2
+import numpy as np
 import pytesseract
+from PIL import Image
 from sqlmodel import select
 
-from redact.core.config import REDACT_DIR, UPLOAD_DIR
+from redact.core.config import SUPABASE_BUCKET, get_supabase_client
 from redact.core.database import AsyncSessionLocal
 from redact.services.storage import get_file_id_by_batch, update_batch_status_async
 from redact.sqlschema.tables import Files, FileStatus
@@ -105,10 +107,25 @@ async def redact(batch_id):
             image_name, old_extension = os.path.splitext(
                 image
             )  # Get image name w/o extension
-            document_path = os.path.join(UPLOAD_DIR, image)  # Path to uploaded images
+
+            """
+            TODO: Instead of using the local dir, access that document name, create the full image online storage location,
+                  and then pull the image from supabase storage. This uses opencv to read document path, check if imread can
+                  do that, if not, find a way to feed the image directly instead of imread.
+            """
+
+            document_path = f"uploads/{image}"  # Path to uploaded images
             print(document_path)
 
-            cv_image = cv2.imread(document_path)
+            supabase_client = await get_supabase_client()
+            supabase_buffer = await supabase_client.storage.from_(
+                SUPABASE_BUCKET
+            ).download(
+                path=document_path,
+            )
+
+            nparr = np.frombuffer(supabase_buffer, np.uint8)
+            cv_image = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
             copied_image = cv_image.copy()
             try:
                 for item in data["ocr"]:
@@ -130,10 +147,38 @@ async def redact(batch_id):
 
                 redact_image_name = f"{image_name}_redacted{old_extension}"
 
-                save_path = os.path.join(str(REDACT_DIR), redact_image_name)
+                encode_param = [
+                    int(cv2.IMWRITE_JPEG_QUALITY),
+                    95,
+                ]  # Set JPEG quality to 95
+                success, encoded_buffer = cv2.imencode(
+                    f"{old_extension}", copied_image, encode_param
+                )  # Decode image back to jpeg
 
-                print(type(REDACT_DIR))
-                cv2.imwrite(save_path, copied_image)
+                if not success:
+                    raise Exception("Could not encode image buffer")
+
+                image_bytes = encoded_buffer.tobytes()
+
+                """
+                TODO: Instead of the local_save_path, let the save path be the supabase storage location, and then upload 
+                      using supabase instead of opencv's imwrite.
+                """
+                try:
+                    save_path = f"redacted/{redact_image_name}"
+
+                    supabase_client = await get_supabase_client()
+                    await supabase_client.storage.from_(SUPABASE_BUCKET).upload(
+                        path=save_path,
+                        file=image_bytes,
+                        file_options={
+                            "content-type": "image/jpeg",
+                            "upsert": "true",
+                        },
+                    )
+
+                except Exception as e:
+                    print(f"Redacted image could not be saved: {e}")
 
             except Exception as e:
                 print(f"Could not resolve file name. Error: {e}")
@@ -148,9 +193,9 @@ async def redact(batch_id):
             await session.refresh(json_table)
 
 
-def preprocess_ocr(image: str):
+def preprocess_ocr(buffer):
     # Read image
-    img = cv2.imread(image)
+    img = cv2.imdecode(buffer, cv2.IMREAD_UNCHANGED)
 
     # 1. Optional: scale image (helps Tesseract)
     sized = cv2.resize(img, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
@@ -181,10 +226,24 @@ async def document_ocr(batch_id: UUID):
             document = str(result.scalars().one())
 
             data = {"ocr": []}
-            document_path = os.path.join(UPLOAD_DIR, document)
-            print(document_path)
+            """
+            TODO: Instead of using the local dir, access that document name, create the full image online storage location,
+                  and then pull the image from supabase storage.
+            """
 
-            img = await asyncio.to_thread(preprocess_ocr, document_path)
+            document_path = f"uploads/{document}"
+
+            supabase_client = await get_supabase_client()
+            supabase_buffer = await supabase_client.storage.from_(
+                SUPABASE_BUCKET
+            ).download(
+                document_path,
+            )
+
+            nparr = np.frombuffer(
+                supabase_buffer, np.uint8
+            )  # Conv supabase buffer to np array
+            img = await asyncio.to_thread(preprocess_ocr, nparr)
             results = await asyncio.to_thread(
                 pytesseract.image_to_data, img, output_type=pytesseract.Output.DICT
             )

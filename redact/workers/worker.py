@@ -6,12 +6,10 @@ import warnings
 sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 
 # Suppress TensorFlow/CUDA warnings
-"""
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # Suppress TF warnings
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Disable GPU search entirely
 os.environ["JAX_PLATFORM_NAME"] = "cpu"
 warnings.filterwarnings("ignore")
-"""
 
 from gliner import GLiNER
 from redis import Redis

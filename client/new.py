@@ -1,18 +1,11 @@
-"""
-Provides Client side functionality. Allows you to upload files for processing.
-Redacted documents are saved in a dir named "Your_Files", along with your batch_id.
-Keep in mind you can only process and delete one batch at a time. Unless you save your batch_id.
-"""
-
-import io
 import os
 import time
-import zipfile
 from pathlib import Path
 
 import requests
 
 CHUNK_SIZE = 4096
+
 script_dir = Path(
     __file__
 ).parent.parent  # Get the directory where the current script is located
@@ -50,27 +43,8 @@ for path in paths:
         )
     )
 
-# Start job
-try:
-    # Upload list of files to server
-    response = requests.post("http://localhost:8000/predict", files=files_to_upload)
-    data = response.json()
-    batch_id = data["batch_id"]
 
-    # Print the response from the server
-    print(f"Status Code: {response.status_code}")
-    print(f"Response Body: {response.json()}")
-
-except requests.exceptions.RequestException as e:
-    print(f"An error occurred: {e}")
-
-finally:
-    # Close all opened file handles after the request is complete
-    for _, file_tuple in files_to_upload:
-        file_tuple[1].close()
-
-print(f"Batch ID: {batch_id}. Saved to batch_id.txt")
-# Poll manually
+batch_id = "5aec6ee0-6681-4269-bce8-d99b1bf277a2"
 counter = 1
 while True:
     status = requests.get(f"http://localhost:8000/predict/check/{batch_id}")

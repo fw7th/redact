@@ -3,17 +3,23 @@ import io
 import os
 import zipfile
 
+from redact.core.config import SUPABASE_BUCKET
+
 CHUNK_SIZE = 1024
 
 
-def zip_files(file_paths: list):
+async def zip_files(supabase_client, file_list: list):
     # Create a BytesIO object to write the zip file into memory
     s = io.BytesIO()
     with zipfile.ZipFile(s, "w") as zf:
-        for file_path in file_paths:
+        for file_path in file_list:
+            # Stream the file from supabase bucket
+            image_data = await supabase_client.storage.from_(SUPABASE_BUCKET).download(
+                path=file_path,
+            )
             # Add file to the zip archive, using just the filename
             minSize = (30, 30)
-            zf.write(file_path, os.path.basename(file_path))
+            zf.writestr(os.path.basename(file_path), image_data)
 
     # After writing, seek back to the beginning of the BytesIO object
     s.seek(0)

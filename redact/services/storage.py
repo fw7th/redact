@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import delete, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from redact.core.config import REDACT_DIR, UPLOAD_DIR
+from redact.core.config import SUPABASE_BUCKET, get_supabase_client
 from redact.core.database import AsyncSessionLocal
 from redact.sqlschema.tables import Batch, BatchStatus, Files
 
@@ -95,17 +95,25 @@ async def delete_batch_db(batch_id: UUID, session: AsyncSession):
             results = await session.execute(statement)
             filenames = results.all()
 
+            upload_list = []
+            redact_list = []
+            supabase_client = await get_supabase_client()
             for filename in filenames:
-                file = os.path.join(UPLOAD_DIR, filename[0])
-                redact_file = os.path.join(REDACT_DIR, filename[1])
+                file = f"uploads/{filename[0]}"
+                upload_list.append(file)
 
-                if os.path.exists(file):
-                    os.remove(file)
-                    print(f"File '{file}' has been deleted.")
+                redact_file = f"redacted/{filename[1]}"
+                redact_list.append(redact_file)
 
-                if os.path.exists(redact_file):
-                    os.remove(redact_file)
-                    print(f"redact_file '{redact_file}' has been deleted.")
+            await supabase_client.storage.from_(SUPABASE_BUCKET).remove(
+                upload_list
+            )  # Delete uploads
+
+            await supabase_client.storage.from_(SUPABASE_BUCKET).remove(
+                redact_list
+            )  # Delete redacted files
+
+            print("Specified files have been deleted.")
 
             # Delete all rows with this batch_id
             statement2 = delete(Files).where(Files.batch_id == batch_id)
