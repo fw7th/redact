@@ -11,7 +11,6 @@ sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/
 import cv2
 import numpy as np
 import pytesseract
-from PIL import Image
 from sqlmodel import select
 
 from redact.core.config import SUPABASE_BUCKET, get_supabase_client
@@ -215,6 +214,7 @@ def preprocess_ocr(buffer):
 
 
 async def document_ocr(batch_id: UUID):
+    print("In document_ocr")
     async with AsyncSessionLocal() as session:
         file_ids = await get_file_id_by_batch(batch_id, session)
         for file_id in file_ids:
@@ -233,6 +233,7 @@ async def document_ocr(batch_id: UUID):
 
             document_path = f"uploads/{document}"
 
+            print("Fails: no supabase client")
             supabase_client = await get_supabase_client()
             supabase_buffer = await supabase_client.storage.from_(
                 SUPABASE_BUCKET
@@ -248,6 +249,7 @@ async def document_ocr(batch_id: UUID):
                 pytesseract.image_to_data, img, output_type=pytesseract.Output.DICT
             )
 
+            print("Why does this occur.")
             # Loop over each detected text localization
             for i in range(0, len(results["text"])):
                 # Extract the bounding box coordinates, text, and confidence

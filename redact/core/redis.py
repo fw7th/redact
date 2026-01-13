@@ -12,15 +12,11 @@ REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 REDIS_USERNAME = os.getenv("REDIS_USERNAME")
 
 # Connect to Redis
-"""
 redis_conn = Redis(
     host=REDIS_HOST,
     port=REDIS_PORT,
     username=REDIS_USERNAME,
     password=REDIS_PASSWORD,
-    decode_responses=True,
 )
-"""
 
-redis_conn = Redis(host="localhost", db=0)
 predict_queue = Queue("high", connection=redis_conn)

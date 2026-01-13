@@ -1,13 +1,7 @@
-import asyncio
 import os
-import shutil
-import sys
-from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import Annotated, List
 from uuid import UUID
 
-from dotenv import load_dotenv
 from fastapi import (
     Depends,
     FastAPI,
@@ -20,14 +14,8 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from supabase import AsyncClient
 
-from redact.core.config import (
-    SUPABASE_BUCKET,
-    SUPABASE_KEY,
-    SUPABASE_URL,
-    get_supabase_client,
-)
-from redact.core.database import get_async_session, init_async_db
-from redact.core.log import LOG
+from redact.core.config import SUPABASE_BUCKET, app, get_supabase_client
+from redact.core.database import get_async_session
 from redact.core.redis import predict_queue
 from redact.core.zip import zip_files
 from redact.services.storage import (
@@ -37,24 +25,6 @@ from redact.services.storage import (
     update_batch_status_async,
 )
 from redact.sqlschema.tables import Batch, BatchStatus, Files
-
-
-# Define the lifespan context manager
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup events: Code here runs when the application starts
-    LOG.info("Application startup: Initializing resources...")
-    await init_async_db()
-    # Example: database connection, loading models, etc.
-    # Shutdown events: Code here runs when the application shuts down
-    print("ML model loaded.")
-    yield
-    LOG.info("Application shutdown: Cleaning up resources...")
-    LOG.info("Cleanup complete.")
-    # Example: closing database connections, releasing resources
-
-
-app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")
@@ -68,6 +38,9 @@ async def create_prediction(
     files: List[UploadFile] = File(...),
     session: AsyncSession = Depends(get_async_session),
 ):
+    res = await supabase_client.table("batch").select("*").limit(1).execute()
+    print({"data": res.data})
+
     for file in files:
         file_content = await file.read()
 
