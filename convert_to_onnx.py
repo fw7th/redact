@@ -1,8 +1,6 @@
 import argparse
 import os
-import sys
 
-sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 from gliner import GLiNER
 
 
