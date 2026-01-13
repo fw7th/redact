@@ -52,13 +52,13 @@ jobs:
       - name: Run tests with pytest
         env:
           ASYNC_DB_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
-          SYNC_DB_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
+          SUPABASE_URL = "http://localhost:54321"
+          SUPABASE_KEY = "eyJ0eXAiOiJKV1..."
+          SUPABASE_BUCKET = ""
           REDIS_HOST: "localhost"
           REDIS_PORT: 6379
           REDIS_PASSWORD: ""
-          BASE_DIR: "server_imgs"
-          REDACTED: "redacted_imgs"
-          UPLOADED: "uploads"
+          REDIS_USERNAME = "default"
 
         run: pytest tests/ --cov=. --cov-report=term --cov-report=xml
 
