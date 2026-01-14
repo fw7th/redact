@@ -31,7 +31,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 6. COPY YOUR APPLICATION CODE
 # This happens AFTER pip install so code changes don't invalidate pip cache
 COPY redact/ ./redact/
-COPY data/ ./data/
 
 # 7. SET ENVIRONMENT VARIABLES (optional, can also set in Render dashboard)
 # These tell Python not to buffer output (helps with logging)
