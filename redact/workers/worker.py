@@ -14,9 +14,8 @@ os.environ["JAX_PLATFORM_NAME"] = "cpu"
 warnings.filterwarnings("ignore")
 
 ML_MODEL = GLiNER.from_pretrained(
-    "/home/fw7th/redact/data/gliner_urchade/",
-    local_files_only=True,
-)
+    "urchade/gliner_medium-v2.1"
+)  # update to download model instead.
 
 
 def predict_entities(text, labels):
