@@ -31,7 +31,7 @@ from redact.sqlschema.tables import Batch, BatchStatus, Files
 
 @app.get("/")
 async def favicon():
-    return Response(status_code=204)  # No Content
+    return {"message": "Hey Hey! From 7th. "}
 
 
 @app.post("/predict")
@@ -223,3 +223,9 @@ async def drop_batch(
         return {f"Batch ID: {batch_id} is not a valid ID."}
 
     return {f"Batch {batch_id} deleted from database."}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
