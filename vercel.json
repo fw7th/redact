@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.10.16"
+    }
+  },
+  "routes": [
+    { "src": "/(.*)", "dest": "redact/api/index.py" }
+  ]
+}
