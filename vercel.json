@@ -1,11 +1,11 @@
 {
-  "builds": [
-    {
-      "src": "redact/app.py",
-      "use": "@vercel/python"
+  "functions": {
+    "redact/app.py": {
+      "runtime": "python3.10"
     }
-  ],
+  },
   "routes": [
     { "src": "/(.*)", "dest": "redact/app.py" }
   ]
 }
+
