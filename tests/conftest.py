@@ -7,7 +7,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session
 
-from redact.main import app
+from redact.app import app
 
 # Configure pytest-asyncio
 pytest_plugins = ("pytest_asyncio",)
