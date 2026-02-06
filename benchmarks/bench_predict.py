@@ -3,8 +3,6 @@ from pathlib import Path
 
 import httpx
 
-# from core.log import LOG
-
 URL = "http://localhost:8000/predict"
 TEST_IMAGE = Path(__file__).parent.parent / "media" / "mobile2.jpg"
 

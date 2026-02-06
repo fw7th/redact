@@ -8,7 +8,6 @@ from fastapi import FastAPI
 from supabase import AsyncClient, acreate_client
 
 from redact.core.database import init_async_db
-from redact.core.log import LOG
 
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -47,7 +46,7 @@ async def get_supabase_client() -> AsyncClient:
 async def lifespan(app: FastAPI):
     # Startup events: Code here runs when the application starts
     global _supabase_client
-    LOG.info("Application startup: Initializing resources...")
+    print("Application startup: Initializing resources...")
 
     # Create the client
     _supabase_client = await acreate_client(SUPABASE_URL, SUPABASE_KEY)
@@ -58,8 +57,8 @@ async def lifespan(app: FastAPI):
     # Shutdown events: Code here runs when the application shuts down
     print("ML model loaded.")
     yield
-    LOG.info("Application shutdown: Cleaning up resources...")
-    LOG.info("Cleanup complete.")
+    print("Application shutdown: Cleaning up resources...")
+    print("Cleanup complete.")
     # Example: closing database connections, releasing resources
 
 
