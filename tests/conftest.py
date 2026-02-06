@@ -41,3 +41,13 @@ def mock_session():
     session.add_all = MagicMock()
 
     return session
+
+
+@pytest.fixture
+def mock_supabase_client(mocker):
+    # Mock the client
+    client = mocker.Mock()
+    # Mock the storage chain: .storage.from_().upload()
+    mock_storage = client.storage.from_.return_value
+    mock_storage.upload.return_value = {"key": "path/to/file.png"}
+    return client

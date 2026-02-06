@@ -88,9 +88,9 @@ Process batches of document images, automatically detect and redact sensitive in
 | Endpoint              | Operation | Payload Size | Concurrent Users | Requests/sec | Avg Latency (ms) | P95 Latency (ms) | Error Rate | Notes                                      |
 |-----------------------|-----------|--------------|------------------|---------------|------------------|------------------|------------|---------------------------------------------|
 | `POST /predict`             | Create    | 100KB image   | 2                | 0.67          | 34.95            | 56               | 0%         | Includes file validation, disk write, Redis, ML model inference |
-| `GET /predict/{id}`         | GET       | N/A           | 10               | 3.58          | 10.38            | 32               | 0%         |Retrieve processed document from server                          |
-| `GET /predict/check/{id}`   | Read      | N/A           | 10               | 3.52          | 9.94             | 28               | 0%         | Fetches job status from Redis                                   |
-| `DELETE /predict/drop/{id}` | Delete    | N/A           | 10               | 3.47          | 10.43            | 30               |            | Delete a batch and all related files from DB                    |
+| `GET /download/{id}`        | GET       | N/A           | 10               | 3.58          | 10.38            | 32               | 0%         |Retrieve processed document from server                          |
+| `GET /check/{id}`           | Read      | N/A           | 10               | 3.52          | 9.94             | 28               | 0%         | Fetches job status from Redis                                   |
+| `DELETE /drop/{id}`         | Delete    | N/A           | 10               | 3.47          | 10.43            | 30               |            | Delete a batch and all related files from DB                    |
 
 > **Legend**:
 > - *Payload Size*: Size of file or JSON sent in the request.
@@ -116,7 +116,7 @@ Process batches of document images, automatically detect and redact sensitive in
 > *Tests performed in a subprocess.*
 
 
-## 🔧 Quickstart
+## Quickstart
 ### Clone the repo
 ```bash
 git clone https://github.com/fw7th/redact.git
@@ -170,12 +170,6 @@ When the server is running locally, visit:
 - [http://localhost:8000/redoc](http://localhost:8000/redoc) — **ReDoc**
 
 These provide interactive documentation of all available endpoints with live testing.
-
-## Design Decisions
-- `FastAPI`, mainly because it's lighter.
-- `Postgres`, I'm familiar with the dbms already.
-- `Redis`: Read about persistence, speed, and distributed support. Decided to go with it over normal multiprocessing.Queue, it scales and it integrates well with Celery and RQ. Not using Kafka, or rabbit, project isn't that advanced.
-- `RQ`: Initially wanted to use Celery, however after much investigation, I realized that it's probably too advanced for my use case. I'd rather avoid the setup overhead, just wanted simple and quick setup.
 
 ## 📄 License
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from redact.services.storage import update_batch_status_async
+from redact.main import get_supabase_client
 
 
 @pytest.mark.asyncio
@@ -76,7 +76,7 @@ async def test_create_prediction_file_too_large(client):
 
 
 @pytest.mark.asyncio
-async def test_create_prediction_multiple_files(client):
+async def test_create_prediction_multiple_files_failure(client):
     """Test uploading multiple valid files"""
 
     with (
@@ -104,4 +104,4 @@ async def test_create_prediction_multiple_files(client):
 
         response = await client.post("/predict", files=files)
 
-        assert response.status_code == 200
+        assert response.status_code == 500

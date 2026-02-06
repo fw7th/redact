@@ -1,7 +1,10 @@
+import io
 import os
+import zipfile
 from typing import Annotated, List
 from uuid import UUID
 
+import modal
 from fastapi import (
     Depends,
     FastAPI,
@@ -9,7 +12,7 @@ from fastapi import (
     HTTPException,
     UploadFile,
 )
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from supabase import AsyncClient
@@ -17,7 +20,6 @@ from supabase import AsyncClient
 from redact.core.config import SUPABASE_BUCKET, app, get_supabase_client
 from redact.core.database import get_async_session
 from redact.core.redis import predict_queue
-from redact.core.zip import zip_files
 from redact.services.storage import (
     create_batch_and_files,
     delete_batch_db,
@@ -38,9 +40,6 @@ async def create_prediction(
     files: List[UploadFile] = File(...),
     session: AsyncSession = Depends(get_async_session),
 ):
-    res = await supabase_client.table("batch").select("*").limit(1).execute()
-    print({"data": res.data})
-
     for file in files:
         file_content = await file.read()
 
@@ -123,15 +122,19 @@ async def create_prediction(
     await update_batch_status_async(batch_id, BatchStatus.uploaded)
 
     # Enqueue model processing job
-    predict_queue.enqueue("redact.workers.inference.sync_full_inference", batch_id)
+    remote_inference = modal.Function.from_name("redact-worker", "inference_work")
+    result = remote_inference.spawn(batch_id)
 
+    """
+    predict_queue.enqueue("redact.workers.inference.sync_full_inference", batch_id)
+    """
     return {
         "batch_id": batch_id,
         "status": "queued",
     }
 
 
-@app.get("/predict/check/{batch_id}")
+@app.get("/check/{batch_id}")
 async def get_task_status(
     batch_id: UUID, session: AsyncSession = Depends(get_async_session)
 ):
@@ -158,48 +161,58 @@ async def get_task_status(
         raise HTTPException(status_code=404, detail=f"Batch {batch_id} not found")
 
 
-# For Users to request a file, maybe their download.
-@app.get("/predict/{batch_id}")
+# For Users to request a file.
+@app.get("/download/{batch_id}")
 async def get_image(
     supabase_client: Annotated[AsyncClient, Depends(get_supabase_client)],
     batch_id: UUID,
     session: AsyncSession = Depends(get_async_session),
 ):
-    file_list = []
     try:
+        # Get file list for the batch
+        file_list: List[str] = []
         file_ids = await get_file_id_by_batch(batch_id, session)
         for file_id in file_ids:
             str_uuid = str(file_id)
-
             result = await session.execute(
                 select(Files.redact_filename).where(Files.file_id == str_uuid)
             )
-
             redact_image_name = result.scalars().one()
             file_path = f"redacted/{redact_image_name}"
-
             file_list.append(file_path)
-        # Optional: Add access control logic here
-        # Check DB to see if the user should have access to this file
-        zip_bytes = await zip_files(supabase_client, file_list)
-        zip_filename = "redacted_files.zip"
 
-        return Response(
-            content=zip_bytes.getvalue(),
+        CHUNK_SIZE = 1024 * 1024  # 1 MB
+
+        # Async generator that streams a zip
+        async def zip_generator():
+            with io.BytesIO() as mem_zip:
+                with zipfile.ZipFile(mem_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+                    for file_path in file_list:
+                        # Stream file from Supabase
+                        data = await supabase_client.storage.from_(
+                            SUPABASE_BUCKET
+                        ).download(path=file_path)
+                        zf.writestr(os.path.basename(file_path), data)
+
+                mem_zip.seek(0)
+                while chunk := mem_zip.read(CHUNK_SIZE):
+                    yield chunk
+
+        zip_filename = "redacted_files.zip"
+        return StreamingResponse(
+            zip_generator(),
             media_type="application/zip",
             headers={"Content-Disposition": f"attachment; filename={zip_filename}"},
         )
 
-    except:
+    except Exception as e:
+        print(e)
         raise HTTPException(
             detail="There was an error processing the data", status_code=400
         )
 
-    finally:
-        zip_bytes.close()
 
-
-@app.delete("/predict/drop/{batch_id}")
+@app.delete("/drop/{batch_id}")
 async def drop_batch(
     batch_id: UUID, session: AsyncSession = Depends(get_async_session)
 ):

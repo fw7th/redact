@@ -1,9 +1,11 @@
 import asyncio
 import json
 import os
+import sys
 import time
 from uuid import UUID
 
+sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
 import cv2
 import numpy as np
 import pytesseract
@@ -48,13 +50,11 @@ async def NER(batch_id: UUID):
                 full_text = " ".join(result["text"] for result in data["ocr"])
 
                 try:
-                    print("Early")
                     entities = await asyncio.to_thread(
                         predict_entities, full_text, labels
                     )  # Perform NER w/ GLiNER
 
                     # Build fast lookup dict: word -> label
-                    print("Done with predict_entities")
                     entity_map = {}
                     for entity in entities:
                         for token in entity["text"].split(" "):
@@ -86,7 +86,6 @@ async def NER(batch_id: UUID):
 
 
 async def redact(batch_id):
-    print("BEGAIN REDACT FUNC")
     async with AsyncSessionLocal() as session:
         file_ids = await get_file_id_by_batch(batch_id, session)
         for file_id in file_ids:
@@ -97,20 +96,12 @@ async def redact(batch_id):
             )
             row = result.first()
             image, data = row  # return (image_name, json) from query
-            print("In redact function")
 
             image_name, old_extension = os.path.splitext(
                 image
             )  # Get image name w/o extension
 
-            """
-            TODO: Instead of using the local dir, access that document name, create the full image online storage location,
-                  and then pull the image from supabase storage. This uses opencv to read document path, check if imread can
-                  do that, if not, find a way to feed the image directly instead of imread.
-            """
-
             document_path = f"uploads/{image}"  # Path to uploaded images
-            print(document_path)
 
             supabase_client = await get_supabase_client()
             supabase_buffer = await supabase_client.storage.from_(
@@ -155,10 +146,6 @@ async def redact(batch_id):
 
                 image_bytes = encoded_buffer.tobytes()
 
-                """
-                TODO: Instead of the local_save_path, let the save path be the supabase storage location, and then upload 
-                      using supabase instead of opencv's imwrite.
-                """
                 try:
                     save_path = f"redacted/{redact_image_name}"
 
@@ -210,7 +197,6 @@ def preprocess_ocr(buffer):
 
 
 async def document_ocr(batch_id: UUID):
-    print("In document_ocr")
     async with AsyncSessionLocal() as session:
         file_ids = await get_file_id_by_batch(batch_id, session)
         for file_id in file_ids:
@@ -222,14 +208,9 @@ async def document_ocr(batch_id: UUID):
             document = str(result.scalars().one())
 
             data = {"ocr": []}
-            """
-            TODO: Instead of using the local dir, access that document name, create the full image online storage location,
-                  and then pull the image from supabase storage.
-            """
 
             document_path = f"uploads/{document}"
 
-            print("Fails: no supabase client")
             supabase_client = await get_supabase_client()
             supabase_buffer = await supabase_client.storage.from_(
                 SUPABASE_BUCKET
@@ -245,7 +226,6 @@ async def document_ocr(batch_id: UUID):
                 pytesseract.image_to_data, img, output_type=pytesseract.Output.DICT
             )
 
-            print("Why does this occur.")
             # Loop over each detected text localization
             for i in range(0, len(results["text"])):
                 # Extract the bounding box coordinates, text, and confidence
@@ -256,10 +236,8 @@ async def document_ocr(batch_id: UUID):
                 text = results["text"][i]
                 conf = round(results["conf"][i], 3)
 
-                # Filter out weak detections (e.g., confidence < 60) and empty text
+                # Filter out empty text
                 if len(text.strip()) > 0:
-                    # print(f"Text: {text}, Bounding Box: ({x}, {y}, {w}, {h}), Confidence: {conf}%")
-                    # You can also draw the bounding boxes on the image using Pillow
                     ocr_data = {
                         "text": text,
                         "bbox": [(x, y), (x + w, y + h)],

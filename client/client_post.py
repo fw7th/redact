@@ -73,15 +73,18 @@ print(f"Batch ID: {batch_id}. Saved to batch_id.txt")
 # Poll manually
 counter = 1
 while True:
-    status = requests.get(f"http://localhost:8000/predict/check/{batch_id}")
+    status = requests.get(f"http://localhost:8000/check/{batch_id}")
     data = status.json()
     if data["status"] == "completed":
         try:
             # Use stream=True for efficient downloading of larger files
+            now = time.time()
             response = requests.get(
-                f"http://localhost:8000/predict/{batch_id}", stream=True
+                f"http://localhost:8000/download/{batch_id}", stream=True
             )
             response.raise_for_status()
+            later = time.time()
+            print(f"Download took: {later - now}")
 
             # Save batch_id to delete files if you want to later.
             with open(batch_id_file, "w") as f:

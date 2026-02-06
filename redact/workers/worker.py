@@ -1,21 +1,37 @@
 # model.py
-import os
+import sys
 import warnings
 
+import torch
 from gliner import GLiNER
 from rq import Worker
 
 from redact.core.redis import predict_queue, redis_conn
 
-# Suppress TensorFlow/CUDA warnings
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # Suppress TF warnings
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Disable GPU search entirely
-os.environ["JAX_PLATFORM_NAME"] = "cpu"
+# sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
+
 warnings.filterwarnings("ignore")
 
-ML_MODEL = GLiNER.from_pretrained(
-    "urchade/gliner_medium-v2.1"
+device = "cuda" if torch.cuda.is_available() else "cpu"
+ML_MODEL = GLiNER.from_pretrained("urchade/gliner_medium-v2.1").to(
+    device
 )  # update to download model instead.
+
+
+print("CUDA available:", torch.cuda.is_available())
+print("CUDA device count:", torch.cuda.device_count())
+print(
+    "CUDA device name:",
+    torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A",
+)
+
+"""
+ML_MODEL = GLiNER.from_pretrained(
+    "/home/fw7th/redact/data/gliner_urchade/",
+    local_files_only=True,
+)
+
+"""
 
 
 def predict_entities(text, labels):
