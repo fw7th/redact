@@ -1,6 +1,8 @@
 import io
 import os
+import sys
 import zipfile
+from pathlib import Path
 from typing import Annotated, List
 from uuid import UUID
 
@@ -27,6 +29,13 @@ from redact.services.storage import (
     update_batch_status_async,
 )
 from redact.sqlschema.tables import Batch, BatchStatus, Files
+
+# Kind of a hack to get vercel to work.
+ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = ROOT.parent
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 
 @app.get("/")
