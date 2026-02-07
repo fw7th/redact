@@ -1,0 +1,46 @@
+<svg width="746" height="220" viewBox="0 0 746 220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Mask to remove the text underneath the magnifying glass -->
+    <mask id="glassMask">
+      <rect x="0" y="0" width="746" height="176" fill="white"/>
+      <circle cx="210" cy="88" r="50" fill="black"/>
+    </mask>
+
+    <!-- Clip path for magnified text inside the glass -->
+    <clipPath id="glassClip">
+      <circle cx="210" cy="88" r="50"/>
+    </clipPath>
+  </defs>
+
+  <!-- Base text with hole for the magnifying glass -->
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="120" font-weight="bold"
+        fill="#111" mask="url(#glassMask)">
+    REDACT
+  </text>
+
+  <!-- Redaction bar -->
+  <rect x="50" y="65" width="646" height="46" fill="#000" mask="url(#glassMask)"/>
+
+  <!-- Magnified portion inside the magnifying glass -->
+  <g clip-path="url(#glassClip)">
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+          font-family="Arial, sans-serif" font-size="135" font-weight="bold"
+          fill="#111">
+      REDACT
+    </text>
+  </g>
+
+  <!-- Magnifying glass frame flush with circle -->
+  <g fill="none" stroke="#555" stroke-linecap="round">
+    <circle cx="210" cy="88" r="50" stroke-width="8"/>
+    <circle cx="210" cy="88" r="50" stroke="#777" stroke-width="2"/>
+    <line x1="248" y1="126" x2="290" y2="168" stroke-width="7"/>
+  </g>
+
+  <!-- Small tagline text below the logo -->
+  <text x="50%" y="200" dominant-baseline="middle" text-anchor="middle"
+        font-family="Arial, sans-serif" font-size="24" font-style="italic" fill="#111">
+    🔒 PII Redaction Service.
+  </text>
+</svg>
