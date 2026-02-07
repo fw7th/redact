@@ -8,12 +8,14 @@ from uuid import UUID
 
 import modal
 from fastapi import (
+    BackgroundTasks,
     Depends,
     FastAPI,
     File,
     HTTPException,
     UploadFile,
 )
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -56,6 +58,7 @@ async def favicon():
 
 @app.post("/predict")
 async def create_prediction(
+    background_tasks: BackgroundTasks,
     supabase_client: Annotated[AsyncClient, Depends(get_supabase_client)],
     files: List[UploadFile] = File(...),
     session: AsyncSession = Depends(get_async_session),
@@ -142,8 +145,16 @@ async def create_prediction(
     await update_batch_status_async(batch_id, BatchStatus.uploaded)
 
     # Enqueue model processing job
-    remote_inference = modal.Function.from_name(MODAL_APP, "inference_work")
-    result = remote_inference.spawn(batch_id)
+    async def start_inference(batch_id):
+        # Run async in background task and return batch_id immediately
+        remote_inference = modal.Function.from_name(MODAL_APP, "inference_work")
+        try:
+            await run_in_threadpool(remote_inference.spawn, batch_id)
+        except Exception as e:
+            print("Modal spawn failed:", str(e))
+            raise HTTPException(status_code=500, detail=f"Modal spawn failed: {str(e)}")
+
+    background_tasks.add_task(start_inference, batch_id)
 
     """
     # FOR LOCAL USE, UNCOMMENT THIS TO USE RQ INSTEAD OF MODAL.
@@ -244,9 +255,3 @@ async def drop_batch(
         return {f"Batch ID: {batch_id} is not a valid ID."}
 
     return {f"Batch {batch_id} deleted from database."}
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)

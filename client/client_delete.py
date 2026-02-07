@@ -24,7 +24,7 @@ except FileNotFoundError:
 except Exception as e:
     print(f"An error occurred: {e}")
 
-url = f"http://localhost:8000/drop/{batch_id}"
+url = f"https://redact7th.vercel.app/drop/{batch_id}"
 
 # Send the DELETE request
 response = requests.delete(url)

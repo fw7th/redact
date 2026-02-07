@@ -53,8 +53,11 @@ for path in paths:
 # Start job
 try:
     # Upload list of files to server
-    response = requests.post("http://localhost:8000/predict", files=files_to_upload)
+    response = requests.post(
+        "https://redact7th.vercel.app/predict", files=files_to_upload
+    )
     data = response.json()
+    print(f"Data: {data}")
     batch_id = data["batch_id"]
 
     # Print the response from the server
@@ -73,14 +76,14 @@ print(f"Batch ID: {batch_id}. Saved to batch_id.txt")
 # Poll manually
 counter = 1
 while True:
-    status = requests.get(f"http://localhost:8000/check/{batch_id}")
+    status = requests.get(f"https://redact7th.vercel.app/check/{batch_id}")
     data = status.json()
     if data["status"] == "completed":
         try:
             # Use stream=True for efficient downloading of larger files
             now = time.time()
             response = requests.get(
-                f"http://localhost:8000/download/{batch_id}", stream=True
+                f"https://redact7th.vercel.app/download/{batch_id}", stream=True
             )
             response.raise_for_status()
             later = time.time()
