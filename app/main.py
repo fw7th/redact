@@ -20,6 +20,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from supabase import AsyncClient
 
 from redact.core.config import (
+    BASE_DIR,
     MODAL_APP,
     SUPABASE_BUCKET,
     app,
@@ -50,7 +51,7 @@ async def root():
 # Redirect /favicon.ico to the custom logo in assets
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return FileResponse("/assets/favicon_io/favicon.ico")
+    return FileResponse(BASE_DIR / "assets" / "favicon_io" / "favicon.ico")
 
 
 @app.post("/predict")

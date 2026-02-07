@@ -21,7 +21,6 @@ async def test_create_prediction_failure(client, mock_session):
             "app.main.create_batch_and_files", new_callable=AsyncMock
         ) as mock_create_batch,
         patch("app.main.update_batch_status_async") as mock_update_batch,
-        patch("app.main.predict_queue") as mock_queue,
         patch("app.main.get_async_session", return_value=mock_session),
         patch("builtins.open", create=True),
         patch("os.path.exists", return_value=False),
@@ -31,8 +30,6 @@ async def test_create_prediction_failure(client, mock_session):
         mock_create_batch.return_value = fake_batch_id
         mock_job = MagicMock()
         mock_job.id = fake_job_id
-        mock_queue.enqueue.return_value = mock_job
-        mock_queue.job_ids = [fake_job_id]
 
         # Create fake file data
         fake_image = BytesIO(b"fake image content")
@@ -85,7 +82,6 @@ async def test_create_prediction_multiple_files_failure(client):
         patch(
             "app.main.create_batch_and_files", new_callable=AsyncMock
         ) as mock_create_batch,
-        patch("app.main.predict_queue") as mock_queue,
         patch("app.main.update_batch_status_async") as mock_update_batch,
         patch("app.main.get_async_session"),
         patch("builtins.open", create=True),
@@ -95,8 +91,6 @@ async def test_create_prediction_multiple_files_failure(client):
         mock_create_batch.return_value = uuid4()
         mock_job = MagicMock()
         mock_job.id = "test-job-123"
-        mock_queue.enqueue.return_value = mock_job
-        mock_queue.job_ids = ["test-job-123"]
 
         # Multiple files
         files = [

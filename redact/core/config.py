@@ -68,7 +68,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-print(BASE_DIR)
 
 app.mount(
     "/assets/favicon_io",
