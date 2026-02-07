@@ -46,7 +46,7 @@ Redact is a production-ready microservice built with FastAPI that handles the se
   <img src="https://raw.githubusercontent.com/fw7th/redact/main/.github/test_redacted.jpg" width="300" alt="Redacted image" />
 </p>
 
-<p align="center"><em>Random image I found on the internet vs. Redacted. PS: If it's your image sorry 😅</em></p>
+<p align="center"><em>Random image I found on the internet vs. Redacted. PS: If it's your image, I'm sorry 😅</em></p>
 
 
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
@@ -152,6 +152,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ### Citations
 - [GLiNER](https://github.com/fw7th/GLiNER) was pivotal in the development of the PII redaction module.
+```bibtex
 @misc{stepanov2024glinermultitaskgeneralistlightweight,
       title={GLiNER multi-task: Generalist Lightweight Model for Various Information Extraction Tasks}, 
       author={Ihor Stepanov and Mykhailo Shtopko},
@@ -161,8 +162,10 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
       primaryClass={cs.LG},
       url={https://arxiv.org/abs/2406.12925}, 
 }
+```
 
-- Tesseract, the OCR engine, performs text extraction in this project.
+- [Tesseract](https://github.com/tesseract-ocr/tesseract), the Open Source OCR engine, performs text extraction in this project.
+```bibtex
 @Manual{,
   title = {tesseract: Open Source OCR Engine},
   author = {Jeroen Ooms},
@@ -170,3 +173,4 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
   note = {R package version 5.2.5},
   url = {https://docs.ropensci.org/tesseract/},
 }
+```
