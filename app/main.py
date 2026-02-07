@@ -14,7 +14,7 @@ from fastapi import (
     HTTPException,
     UploadFile,
 )
-from fastapi.responses import RedirectResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from supabase import AsyncClient
@@ -50,7 +50,7 @@ async def root():
 # Redirect /favicon.ico to the custom logo in assets
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return RedirectResponse(url="/assets/favicon.ico", status_code=307)
+    return FileResponse("/assets/favicon_io/favicon.ico")
 
 
 @app.post("/predict")

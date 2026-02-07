@@ -1,10 +1,12 @@
 import asyncio
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from supabase import AsyncClient, acreate_client
 
 from redact.core.database import init_async_db
@@ -64,3 +66,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+print(BASE_DIR)
+
+app.mount(
+    "/assets/favicon_io",
+    StaticFiles(directory=BASE_DIR / "assets" / "favicon_io"),
+    name="favicon",
+)
