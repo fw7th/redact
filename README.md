@@ -19,8 +19,8 @@
 
 <div align="center">
 
-[![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow?style=for-the-badge)]
-[![Build Status](https://img.shields.io/github/actions/workflow/status/fw7th/redact/ci.yml?branch=main&style=for-the-badge)]
+![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow?style=for-the-badge)
+![Build Status](https://img.shields.io/github/actions/workflow/status/fw7th/redact/ci.yml?branch=main&style=for-the-badge)
 [![Coverage Status](https://img.shields.io/coveralls/github/fw7th/redact/main?style=for-the-badge)](https://coveralls.io/github/fw7th/redact?branch=main)
 
 </div>
@@ -40,6 +40,13 @@ Redact is a production-ready microservice built with FastAPI that handles the se
 - Benchmarked: Includes load testing scripts using Locust and benchmarks for performance analysis.
 
 <!-- MANPAGE: END EXCLUDED SECTION -->
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/fw7th/redact/main/.github/test.jpg" width="300" alt="Random image" />
+  <img src="https://raw.githubusercontent.com/fw7th/redact/main/.github/test_redacted.jpg" width="300" alt="Redacted image" />
+</p>
+
+<p align="center"><em>Random image I found on the internet vs. Redacted. PS: If it's your image sorry 😅</em></p>
 
 
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
