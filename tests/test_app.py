@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from redact.app import get_supabase_client
+from app.main import get_supabase_client
 
 
 @pytest.mark.asyncio
@@ -18,11 +18,11 @@ async def test_create_prediction_failure(client, mock_session):
     # Mock the dependencies
     with (
         patch(
-            "redact.app.create_batch_and_files", new_callable=AsyncMock
+            "app.main.create_batch_and_files", new_callable=AsyncMock
         ) as mock_create_batch,
-        patch("redact.app.update_batch_status_async") as mock_update_batch,
-        patch("redact.app.predict_queue") as mock_queue,
-        patch("redact.app.get_async_session", return_value=mock_session),
+        patch("app.main.update_batch_status_async") as mock_update_batch,
+        patch("app.main.predict_queue") as mock_queue,
+        patch("app.main.get_async_session", return_value=mock_session),
         patch("builtins.open", create=True),
         patch("os.path.exists", return_value=False),
         patch("shutil.copyfileobj"),
@@ -83,11 +83,11 @@ async def test_create_prediction_multiple_files_failure(client):
 
     with (
         patch(
-            "redact.app.create_batch_and_files", new_callable=AsyncMock
+            "app.main.create_batch_and_files", new_callable=AsyncMock
         ) as mock_create_batch,
-        patch("redact.app.predict_queue") as mock_queue,
-        patch("redact.app.update_batch_status_async") as mock_update_batch,
-        patch("redact.app.get_async_session"),
+        patch("app.main.predict_queue") as mock_queue,
+        patch("app.main.update_batch_status_async") as mock_update_batch,
+        patch("app.main.get_async_session"),
         patch("builtins.open", create=True),
         patch("os.path.exists", return_value=False),
         patch("shutil.copyfileobj"),

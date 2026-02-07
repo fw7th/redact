@@ -141,7 +141,7 @@ cp .env.example .env
 
 ### Start the app
 ```bash
-uvicorn redact.app:app --reload
+uvicorn app.main:app --reload
 ```
  
 ### Client request example
