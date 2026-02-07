@@ -20,7 +20,7 @@
 <div align="center">
 
 [![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow?style=for-the-badge)]
-[![Build Status](https://img.shields.io/github/workflow/status/fw7th/redact/ci?style=for-the-badge)]
+[![Build Status](https://img.shields.io/github/actions/workflow/status/fw7th/redact/ci.yml?branch=main&style=for-the-badge)]
 [![Coverage Status](https://img.shields.io/coveralls/github/fw7th/redact/main?style=for-the-badge)](https://coveralls.io/github/fw7th/redact?branch=main)
 
 </div>
