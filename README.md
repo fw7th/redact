@@ -1,19 +1,32 @@
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
-<div align="center">
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fw7th/redact/main/.github/redact_light.svg" width="420px">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/fw7th/redact/main/.github/redact.svg" width="420px">
+    <img alt="redact-logo" src="https://raw.githubusercontent.com/fw7th/redact/main/.github/redact.svg">
+  </picture>
+</p>
 
-[![YT-DLP](https://raw.githubusercontent.com/fw7th/redact/main/.github/redact-logo.svg)](#readme)
-
-![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow?style=for-the-badge)
-![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg?style=for-the-badge)
-[![Coverage Status](https://coveralls.io/repos/github/fw7th/redact/badge.svg?branch=main&style=for-the-badge)](https://coveralls.io/github/fw7th/redact?branch=main) </div>
+<p align="center">
+ <em>🔒 A fast, containerized, and scalable API service for automated OCR and PII redaction on document batches.</em>
+</p>
 
 <!-- MANPAGE: END EXCLUDED SECTION -->
 
-<p align="center">
- <em>A fast, containerized, and scalable API service for automated OCR and PII redaction on document batches.</em>
-</p>
+<!-- MANPAGE: BEGIN EXCLUDED SECTION -->
+
+<div align="center">
+
+[![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow?style=for-the-badge)]
+[![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg?style=for-the-badge)]
+[![Coverage Status](https://coveralls.io/repos/github/fw7th/redact/badge.svg?branch=main&style=for-the-badge)](https://coveralls.io/github/fw7th/redact?branch=main)
+
+</div>
+
 
 Redact is a production-ready microservice built with FastAPI that handles the secure and asynchronous processing of data redaction tasks. Designed to be easily deployed using Docker and scaled via a worker-based architecture (Redis/RQ setup).
+
+<!-- MANPAGE: END EXCLUDED SECTION -->
 
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
 
@@ -39,12 +52,13 @@ Redact is a production-ready microservice built with FastAPI that handles the se
 | `GET /check/{id}`           | Read      | N/A           | 10               | 3.52          | 9.94             | 28               | 0%         | Fetches job status from Redis                                   |
 | `DELETE /drop/{id}`         | Delete    | N/A           | 10               | 3.47          | 10.43            | 30               |            | Delete a batch and all related files from DB                    |
 
-- **Legend**:
+> ***Legend***:
 > - *Payload Size*: Size of file or JSON sent in the request.
 > - *Concurrent Users*: Simulated users (e.g., in Locust).
 > - *Requests/sec*: Throughput under load.
 > - *Latency*: Time from request to response (P95 = 95th percentile).
 
+--- 
 
 #### Model Inference Benchmark Table
 > [Models]
@@ -56,12 +70,15 @@ Redact is a production-ready microservice built with FastAPI that handles the se
 | `GLiNER v2.1`      | 200 lines of text | 790                         | CPU    | Model has a long cold start 20secs-ish  |
 | `Tesseract`        | 512x512 image     | 0.96                        | CPU    | Tesseract?                              |
 
-- **Legend**:
+> ***Legend***:
 > - *Inference Time*: Time to run prediction (ms).
 > - *Throughput*: How many predictions/sec the model can handle.
 
-> *Tests performed in a subprocess.*
+*Tests performed in a subprocess.*
 
+<!-- MANPAGE: END EXCLUDED SECTION -->
+
+<!-- MANPAGE: BEGIN EXCLUDED SECTION -->
 
 ### Quickstart
 #### Clone the repo
@@ -109,6 +126,7 @@ pytest tests/
 ```bash
 ./scripts/benchmark
 ```
+<!-- MANPAGE: END EXCLUDED SECTION -->
 
 ### API Documentation
 [Link to /docs once deployed]
