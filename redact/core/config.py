@@ -13,6 +13,7 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET")
+MODAL_APP = os.getenv("MODAL_APP")
 
 
 if not SUPABASE_URL or not SUPABASE_KEY:

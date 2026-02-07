@@ -14,14 +14,18 @@ from fastapi import (
     HTTPException,
     UploadFile,
 )
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import RedirectResponse, Response, StreamingResponse
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from supabase import AsyncClient
 
-from redact.core.config import SUPABASE_BUCKET, app, get_supabase_client
+from redact.core.config import (
+    MODAL_APP,
+    SUPABASE_BUCKET,
+    app,
+    get_supabase_client,
+)
 from redact.core.database import get_async_session
-from redact.core.redis import predict_queue
 from redact.services.storage import (
     create_batch_and_files,
     delete_batch_db,
@@ -30,17 +34,23 @@ from redact.services.storage import (
 )
 from redact.sqlschema.tables import Batch, BatchStatus, Files
 
-# Kind of a hack to get vercel to work.
-ROOT = Path(__file__).resolve().parent
-PROJECT_ROOT = ROOT.parent
-
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+"""
+# FOR LOCAL USE, UNCOMMENT THIS TO USE RQ INSTEAD OF MODAL.
+from redact.core.redis import predict_queue
+"""
 
 
 @app.get("/")
+async def root():
+    return {
+        "message": "Hey Hey! From 7th. You need to post an image here, it's just a backend for now."
+    }
+
+
+# Redirect /favicon.ico to the custom logo in assets
+@app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return {"message": "Hey Hey! From 7th. "}
+    return RedirectResponse(url="/assets/favicon.ico", status_code=307)
 
 
 @app.post("/predict")
@@ -131,10 +141,11 @@ async def create_prediction(
     await update_batch_status_async(batch_id, BatchStatus.uploaded)
 
     # Enqueue model processing job
-    remote_inference = modal.Function.from_name("redact-worker", "inference_work")
+    remote_inference = modal.Function.from_name(MODAL_APP, "inference_work")
     result = remote_inference.spawn(batch_id)
 
     """
+    # FOR LOCAL USE, UNCOMMENT THIS TO USE RQ INSTEAD OF MODAL.
     predict_queue.enqueue("redact.workers.inference.sync_full_inference", batch_id)
     """
     return {
