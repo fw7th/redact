@@ -11,6 +11,8 @@
  <em>🔒 A fast, containerized, and scalable API service for automated OCR and PII redaction on document batches.</em>
 </p>
 
+---
+
 <!-- MANPAGE: END EXCLUDED SECTION -->
 
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
@@ -18,8 +20,8 @@
 <div align="center">
 
 [![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow?style=for-the-badge)]
-[![Build Status](https://github.com/fw7th/redact/actions/workflows/ci.yml/badge.svg?style=for-the-badge)]
-[![Coverage Status](https://coveralls.io/repos/github/fw7th/redact/badge.svg?branch=main&style=for-the-badge)](https://coveralls.io/github/fw7th/redact?branch=main)
+[![Build Status](https://img.shields.io/github/workflow/status/fw7th/redact/ci?style=for-the-badge)]
+[![Coverage Status](https://img.shields.io/coveralls/github/fw7th/redact/main?style=for-the-badge)](https://coveralls.io/github/fw7th/redact?branch=main)
 
 </div>
 
