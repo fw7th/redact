@@ -5,7 +5,7 @@ import sys
 import time
 from uuid import UUID
 
-sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/")
+# sys.path.append("/home/fw7th/.pyenv/versions/mlenv/lib/python3.10/site-packages/") local dev hack
 import cv2
 import numpy as np
 import pytesseract

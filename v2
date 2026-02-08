@@ -1,4 +1,4 @@
 - Make model inference use C++ instead of python.
-- Add web UI or mobile app w/ dart
+- Add web UI or mobile app w/ dart or something
 - C++ onnx quantized model
 - Model versioning and ML Ops integration

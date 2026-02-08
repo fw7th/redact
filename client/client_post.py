@@ -1,7 +1,11 @@
 """
+# client_post.py
 Provides Client side functionality. Allows you to upload files for processing.
 Redacted documents are saved in a dir named "Your_Files", along with your batch_id.
-Keep in mind you can only process and delete one batch at a time. Unless you save your batch_id.
+
+Replace the variable `paths` with a list of your own local file paths.
+
+For local development, replace `response` & `status` with appropriate local server URLs.
 """
 
 import io
@@ -37,8 +41,8 @@ local_filename = (
 batch_id_file = directory_path / "batch_id.txt"
 
 paths = [
-    "/home/fw7th/Pictures/mobile2.jpg",
-    "/home/fw7th/Pictures/test.jpg",
+    "/your/local/file/path1.jpg",
+    "/your/local/file/path2.jpg",
 ]  # These would be your file paths.
 
 files_to_upload = []

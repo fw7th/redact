@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
- <em>🔒 A fast, containerized, and scalable API service for automated OCR and PII redaction on document batches.</em>
+ <em>🔒 A fast, serverless, and scalable API service for automated OCR and PII redaction on document batches.</em>
 </p>
 
 ---
@@ -25,8 +25,7 @@
 
 </div>
 
-
-Redact is a production-ready microservice built with FastAPI that handles the secure and asynchronous processing of data redaction tasks. Designed to be easily deployed using Docker and scaled via a worker-based architecture (Redis/RQ setup).
+Redact exposes a [FastAPI HTTPs](https://fastapi.tiangolo.com/) interface, persists state in [Supabase (Postgres + Storage)](https://supabase.com/), and offloads compute-heavy redaction workloads to [Modal](https://modal.com/)
 
 <!-- MANPAGE: END EXCLUDED SECTION -->
 
@@ -34,19 +33,23 @@ Redact is a production-ready microservice built with FastAPI that handles the se
 
 ### Features
 - RESTful API: Clear endpoints for submitting and retrieving redaction tasks.
-- Asynchronous Processing: Long-running redaction tasks are handled by a dedicated worker pool, keeping the API fast and responsive.
-- Persistent Storage: Uses SQLAlchemy for task metadata and Redis for task queuing.
-- Containerized: Built for easy deployment with a Dockerfile.
+- Asynchronous Processing: Long-running redaction jobs are executed asynchronously via serverless compute.
+- Persistent Storage: Task metadata stored in Supabase Postgres via SQLAlchemy; documents stored in Supabase Storage.
 - Benchmarked: Includes load testing scripts using Locust and benchmarks for performance analysis.
+
+- **API**: FastAPI
+- **Database**: Supabase Postgres
+- **Object Storage**: Supabase Storage
+- **Compute**: Modal (serverless execution)
 
 <!-- MANPAGE: END EXCLUDED SECTION -->
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fw7th/redact/main/.github/test.jpg" width="300" alt="Random image" />
-  <img src="https://raw.githubusercontent.com/fw7th/redact/main/.github/test_redacted.jpg" width="300" alt="Redacted image" />
+  <img src="https://raw.githubusercontent.com/fw7th/redact/main/assets/test.jpg" width="300" alt="Random image" />
+  <img src="https://raw.githubusercontent.com/fw7th/redact/main/assets/test_redacted.jpg" width="300" alt="Redacted image" />
 </p>
 
-<p align="center"><em>Random image I found on the internet vs. Redacted. PS: If it's your image, I'm sorry 😅</em></p>
+<p align="center"><em>Random image I found on the internet vs. Redacted.</em></p>
 
 
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
@@ -56,9 +59,9 @@ Redact is a production-ready microservice built with FastAPI that handles the se
 
 | Endpoint              | Operation | Payload Size | Concurrent Users | Requests/sec | Avg Latency (ms) | P95 Latency (ms) | Error Rate | Notes                                      |
 |-----------------------|-----------|--------------|------------------|---------------|------------------|------------------|------------|---------------------------------------------|
-| `POST /predict`             | Create    | 100KB image   | 2                | 0.67          | 34.95            | 56               | 0%         | Includes file validation, disk write, Redis, ML model inference |
+| `POST /predict`             | Create    | 100KB image   | 2                | 0.67          | 34.95            | 56               | 0%         | Includes file validation, disk write, Inference offshoring      |
 | `GET /download/{id}`        | GET       | N/A           | 10               | 3.58          | 10.38            | 32               | 0%         |Retrieve processed document from server                          |
-| `GET /check/{id}`           | Read      | N/A           | 10               | 3.52          | 9.94             | 28               | 0%         | Fetches job status from Redis                                   |
+| `GET /check/{id}`           | Read      | N/A           | 10               | 3.52          | 9.94             | 28               | 0%         | Fetches job status from Supabase Postgres                       |
 | `DELETE /drop/{id}`         | Delete    | N/A           | 10               | 3.47          | 10.43            | 30               |            | Delete a batch and all related files from DB                    |
 
 > ***Legend***:
@@ -67,27 +70,62 @@ Redact is a production-ready microservice built with FastAPI that handles the se
 > - *Requests/sec*: Throughput under load.
 > - *Latency*: Time from request to response (P95 = 95th percentile).
 
---- 
-
-#### Model Inference Benchmark Table
-> [Models]
-- [NER: GLiNER (Medium v2.1 {Remember to cite urchade and the GLiNER paper})]
-- [OCR: Tesseract 5.5.1 w/ py-tesseract]
-
-| Model Name         | Input Size        | Avg Inference Time (ms)     | Device | Notes                                   |
-|--------------------|-------------------|-----------------------------|--------|-----------------------------------------|
-| `GLiNER v2.1`      | 200 lines of text | 790                         | CPU    | Model has a long cold start 20secs-ish  |
-| `Tesseract`        | 512x512 image     | 0.96                        | CPU    | Tesseract?                              |
-
-> ***Legend***:
-> - *Inference Time*: Time to run prediction (ms).
-> - *Throughput*: How many predictions/sec the model can handle.
-
-*Tests performed in a subprocess.*
-
 <!-- MANPAGE: END EXCLUDED SECTION -->
 
 <!-- MANPAGE: BEGIN EXCLUDED SECTION -->
+
+### Usage
+To interact with the hosted service as a client, see the [`client/`](client/) directory for example request scripts and helpers.
+
+> ⚠️ Local execution note  
+> Running the API locally is intended for development and testing only.  
+> Production workloads are designed to run on Modal’s serverless infrastructure.
+
+### Development Setup
+
+#### Prerequisites
+To run this project locally, you will need:
+
+1. **A Supabase project**
+   - Supabase Postgres (used for task metadata)
+   - Supabase Storage (used for document and redaction artifacts)
+
+2. **A Modal account**
+   - Modal must be configured locally (one-time setup)
+
+3. **Python 3.10+**
+
+#### Modal Authentication
+Modal must be authenticated on your local machine.
+
+If you have not configured Modal before, run:
+
+```bash
+modal token set
+```
+This will store your credentials locally (e.g. in ~/.modal.toml).
+Alternatively, you may provide credentials manually via environment variables:
+
+```env
+MODAL_TOKEN_ID=...
+MODAL_TOKEN_SECRET=...
+```
+
+Ensure the Modal app name configured in the project is unique within your Modal account.
+
+Supabase credentials are always required.
+Modal credentials are optional if Modal is already configured locally. You only need to set your modal app name in the .env file.
+
+Then from ~/redact/ proceed to run:
+```python
+modal run redact/workers/modalapp.py 
+```
+
+For a persistent app on modal run:
+```python
+modal deploy redact/workers/modalapp.py 
+```
+
 
 ### Quickstart
 #### Clone the repo
@@ -99,7 +137,7 @@ cd redact
 #### Create and activate virtualenv (optional)
 ```bash
 python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
+source venv/bin/activate
 ```
 
 #### Install dependencies
@@ -108,33 +146,28 @@ pip install -r requirements.txt
 ```
 
 #### Copy example env and configure
+Please go over the `Development Setup` Prerequisites section.
 ```bash
 cp .env.example .env
-``````
+```
 
 #### Start the app
 ```bash
 uvicorn app.main:app --reload
-```
- 
-#### Client request example
-```bash
-curl -X POST http://localhost:8000/predict \
-  -F "files=@cat.jpg"
-```
-#### Check job status
-```bash
-curl http://localhost:8000/predict/abc123
 ```
 
 #### Running tests
 ```bash
 pytest tests/
 ```
+
 #### Optionally benchmark
 ```bash
-./scripts/benchmark
+./benchmark/benchmark
 ```
+
+This project does not use Docker for deployment; serverless execution is handled entirely by Modal.
+
 <!-- MANPAGE: END EXCLUDED SECTION -->
 
 ### API Documentation
@@ -151,7 +184,7 @@ These provide interactive documentation of all available endpoints with live tes
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ### Citations
-- [GLiNER](https://github.com/fw7th/GLiNER) was pivotal in the development of the PII redaction module.
+- [GLiNER medium v2.1](https://github.com/fw7th/GLiNER) was pivotal in the development of the PII redaction module.
 ```bibtex
 @misc{stepanov2024glinermultitaskgeneralistlightweight,
       title={GLiNER multi-task: Generalist Lightweight Model for Various Information Extraction Tasks}, 
@@ -164,7 +197,8 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 }
 ```
 
-- [Tesseract](https://github.com/tesseract-ocr/tesseract), the Open Source OCR engine, performs text extraction in this project.
+- [Tesseract v5.5.1 w/ py-tesseract]](https://github.com/tesseract-ocr/tesseract), the Open Source OCR engine, performs text extraction in this project.
+
 ```bibtex
 @Manual{,
   title = {tesseract: Open Source OCR Engine},

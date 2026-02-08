@@ -37,11 +37,6 @@ from redact.services.storage import (
 )
 from redact.sqlschema.tables import Batch, BatchStatus, Files
 
-"""
-# FOR LOCAL USE, UNCOMMENT THIS TO USE RQ INSTEAD OF MODAL.
-from redact.core.redis import predict_queue
-"""
-
 
 @app.get("/")
 async def root():
@@ -156,10 +151,6 @@ async def create_prediction(
 
     background_tasks.add_task(start_inference, batch_id)
 
-    """
-    # FOR LOCAL USE, UNCOMMENT THIS TO USE RQ INSTEAD OF MODAL.
-    predict_queue.enqueue("redact.workers.inference.sync_full_inference", batch_id)
-    """
     return {
         "batch_id": batch_id,
         "status": "queued",

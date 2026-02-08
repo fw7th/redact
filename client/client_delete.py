@@ -1,5 +1,9 @@
 """
+# client_delete.py -> Provides functionality to completely clean your files from the server.
 Deletes your files from the database, reads from the auto-generated 'Your_Files' directory.
+Keep in mind you need the batch's processed ID to drop files from the supabase bucket and database.
+
+# For local development, replace `url` with your local server URL.
 """
 
 from pathlib import Path
