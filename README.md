@@ -126,7 +126,6 @@ For a persistent app on modal run:
 modal deploy redact/workers/modalapp.py 
 ```
 
-
 ### Quickstart
 #### Clone the repo
 ```bash
@@ -178,25 +177,6 @@ When the server is running locally, visit:
 - [http://localhost:8000/redoc](http://localhost:8000/redoc) — **ReDoc**
 
 These provide interactive documentation of all available endpoints with live testing.
-
-### Hosted API
-
-You can interact with the hosted Redact service at:
-
-**Base URL:**  
-[https://redact-api.vercel.app](https://redact-api.vercel.app)
-
-**Available Endpoints:**
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST   | `/predict` | Submit documents for OCR and PII redaction |
-| GET    | `/check/{id}` | Check the status of a submitted job |
-| GET    | `/download/{id}` | Download the redacted document |
-
-**API Documentation:**  
-- Swagger UI: [https://redact-api.vercel.app/docs](https://redact-api.vercel.app/docs)  
-- ReDoc: [https://redact-api.vercel.app/redoc](https://redact-api.vercel.app/redoc)
 
 ### License
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
