@@ -19,7 +19,7 @@
 
 <div align="center">
 
-![Status](https://img.shields.io/badge/status-phase%204%20of%206-yellow?style=for-the-badge)
+![Release](https://img.shields.io/github/v/release/fw7th/redact?style=for-the-badge)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/fw7th/redact/ci.yml?branch=main&style=for-the-badge)
 [![Coverage Status](https://img.shields.io/coveralls/github/fw7th/redact/main?style=for-the-badge)](https://coveralls.io/github/fw7th/redact?branch=main)
 
@@ -170,8 +170,7 @@ This project does not use Docker for deployment; serverless execution is handled
 
 <!-- MANPAGE: END EXCLUDED SECTION -->
 
-### API Documentation
-[Link to /docs once deployed]
+#### API Documentation
 
 When the server is running locally, visit:
 
@@ -179,6 +178,25 @@ When the server is running locally, visit:
 - [http://localhost:8000/redoc](http://localhost:8000/redoc) — **ReDoc**
 
 These provide interactive documentation of all available endpoints with live testing.
+
+### Hosted API
+
+You can interact with the hosted Redact service at:
+
+**Base URL:**  
+[https://redact-api.vercel.app](https://redact-api.vercel.app)
+
+**Available Endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST   | `/predict` | Submit documents for OCR and PII redaction |
+| GET    | `/check/{id}` | Check the status of a submitted job |
+| GET    | `/download/{id}` | Download the redacted document |
+
+**API Documentation:**  
+- Swagger UI: [https://redact-api.vercel.app/docs](https://redact-api.vercel.app/docs)  
+- ReDoc: [https://redact-api.vercel.app/redoc](https://redact-api.vercel.app/redoc)
 
 ### License
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
@@ -197,7 +215,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 }
 ```
 
-- [Tesseract v5.5.1 w/ py-tesseract]](https://github.com/tesseract-ocr/tesseract), the Open Source OCR engine, performs text extraction in this project.
+- [Tesseract v5.5.1 w/ py-tesseract](https://github.com/tesseract-ocr/tesseract), the Open Source OCR engine, performs text extraction in this project.
 
 ```bibtex
 @Manual{,
