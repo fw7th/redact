@@ -12,6 +12,7 @@ from fastapi import (
     Depends,
     FastAPI,
     File,
+    Header,
     HTTPException,
     UploadFile,
 )
@@ -246,3 +247,19 @@ async def drop_batch(
         return {f"Batch ID: {batch_id} is not a valid ID."}
 
     return {f"Batch {batch_id} deleted from database."}
+
+
+CRON_SECRET = os.getenv("CRON_SECRET")  # Vercel sets this automatically
+
+
+@app.get("/internal/keep-alive")
+async def keep_alive(
+    session: AsyncSession = Depends(get_async_session),
+    authorization: str | None = Header(default=None),
+):
+    if CRON_SECRET and authorization != f"Bearer {CRON_SECRET}":
+        raise HTTPException(status_code=404)
+
+    result = await session.exec(select(Files).limit(1))
+    result.first()
+    return {"status": "ok"}

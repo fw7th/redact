@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/internal/keep-alive",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

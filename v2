@@ -2,3 +2,4 @@
 - Add web UI or mobile app w/ dart or something
 - C++ onnx quantized model
 - Model versioning and ML Ops integration
+- Add support for PDFs
